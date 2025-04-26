@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 
-from core.authorization.models import User
+from core.authentication.models import User
 
 class Dream(models.Model):
     class DreamCategory(models.TextChoices):

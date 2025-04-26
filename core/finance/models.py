@@ -1,9 +1,8 @@
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from core.authorization.models import User
+from core.authentication.models import User
 
 class FinancialProfile(models.Model):
     user = models.OneToOneField(User, related_name='financial_profile', on_delete=models.CASCADE)

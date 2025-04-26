@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
 
-    'core.authorization',
+    'core.authentication',
     'core.dream',
     'core.finance',
 ]
@@ -181,4 +181,4 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-AUTH_USER_MODEL = "authorization.User"
+AUTH_USER_MODEL = "authentication.User"
