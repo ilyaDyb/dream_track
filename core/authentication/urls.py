@@ -8,7 +8,7 @@ from .views import (
     UserDetailView
 )
 
-app_name = 'auth'
+app_name = 'authentication'
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),

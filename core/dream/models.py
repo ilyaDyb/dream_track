@@ -35,6 +35,7 @@ class Dream(models.Model):
 class DreamImage(models.Model):
     dream = models.ForeignKey(Dream, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='dream_images/')
+    is_preview = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
