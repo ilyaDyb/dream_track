@@ -8,3 +8,5 @@ instance/
 .env
 staticfiles/
 .media
+media/
+*images/

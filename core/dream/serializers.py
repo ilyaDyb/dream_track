@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from core.dream.models import Dream, DreamImage
-from core.dream.services import DreamService  # Подключаем сервис
+from core.dream.services import DreamService
 
 class DreamCUDSerializer(serializers.ModelSerializer):
     images = serializers.ListField(
@@ -40,15 +40,19 @@ class DreamCUDSerializer(serializers.ModelSerializer):
 
 
 class DreamSerializer(serializers.ModelSerializer):
+    user_id = serializers.ReadOnlyField(source='user.id')
     images = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Dream
-        fields = '__all__'
+        exclude = ['user']
 
     def get_images(self, obj):
         return DreamImageSerializer(obj.images.all(), many=True).data
 
+    def get_likes(self, obj):
+        return obj.likes.count()
 
 class DreamImageSerializer(serializers.ModelSerializer):
     class Meta:

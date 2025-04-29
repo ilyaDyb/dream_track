@@ -1,8 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 
-from core.authentication.models import User
+User = get_user_model()
 
 class Dream(models.Model):
     class DreamCategory(models.TextChoices):
@@ -25,7 +26,40 @@ class Dream(models.Model):
 
     def __str__(self):
         return self.title
-        
+
+    def get_dream_with_images(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'category': self.category,
+            'price': str(self.price),
+            'is_private': self.is_private,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+            'user': self.user.id,
+            'images': [
+                {
+                    'id': image.id,
+                    'image_url': image.image.url,
+                    'is_preview': image.is_preview,
+                    'created_at': image.created_at.isoformat()
+                }
+                for image in self.images.all()
+            ],
+            'likes_count': self.likes.count(),
+            'percentage_achieved': self._get_percentage_achieved()
+        }
+
+
+    def _get_percentage_achieved(self):
+        sum_transactions = self.user.deposits.aggregate(total=Sum('transactions__amount'))['total'] or 0
+        if not self.price:
+            return 0
+        return int(sum_transactions / self.price * 100)
+
+
     class Meta:
         verbose_name = _('Мечта')
         verbose_name_plural = _('Мечты')
@@ -38,6 +72,9 @@ class DreamImage(models.Model):
     is_preview = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
+    def __str__(self):
+        return f"{self.dream.title} - {self.image.name}"
+
     class Meta:
         verbose_name = _('Изображение')
         verbose_name_plural = _('Изображения')

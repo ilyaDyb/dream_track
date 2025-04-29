@@ -1,6 +1,6 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 
@@ -53,12 +53,3 @@ class LogoutView(generics.GenericAPIView):
             {'detail': 'Successfully logged out.'},
             status=status.HTTP_204_NO_CONTENT
         )
-
-
-class UserDetailView(generics.RetrieveAPIView):
-    """View to retrieve user details"""
-    serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    
-    def get_object(self):
-        return self.request.user

@@ -8,12 +8,15 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object"""
+    avatar_url = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'avatar_url', 'bio')
         read_only_fields = ('id',)
 
+    def get_avatar_url(self, obj):
+        return obj.avatar_url
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for creating user accounts"""
@@ -24,6 +27,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'password', 'email')
         extra_kwargs = {
+            'username': {'required': True},
+            'password': {'required': True},
             'email': {'required': True},
         }
 
@@ -37,15 +42,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
     def validate(self, attrs):
         data = super().validate(attrs)
-        
-        # Add user details to response
-        user = self.user
-        data.update({
-            'user_id': user.id,
-            'username': user.username,
-            'email': user.email,
-        })
-        
         return data
 
 

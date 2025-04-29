@@ -7,12 +7,13 @@ import tempfile
 from PIL import Image
 import io
 
-from core.authentication.models import User
 from core.dream.models import Dream, DreamImage
 from core.dream.services import DreamService
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 
+User = get_user_model()
 
 class DreamViewTest(TestCase):
     def setUp(self):

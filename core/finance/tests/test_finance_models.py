@@ -1,109 +1,112 @@
 from django.test import TestCase
-from django.utils import timezone
 from decimal import Decimal
 
 from core.authentication.models import User
-from core.finance.models import FinancialProfile, Deposit
+from core.finance.models import FinancialProfile, Deposit, DepositTransaction
 
-
-class FinancialProfileModelTests(TestCase):
+class FinancialProfileTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpassword'
-        )
+        self.user = User.objects.create_user(username='testuser', password='password')
         self.profile = FinancialProfile.objects.create(
             user=self.user,
-            monthly_income=Decimal('5000.00')
+            monthly_income=Decimal('5000.00'),
+            monthly_savings=Decimal('500.00')
         )
 
     def test_profile_creation(self):
         self.assertEqual(self.profile.user.username, 'testuser')
         self.assertEqual(self.profile.monthly_income, Decimal('5000.00'))
-        self.assertIsNotNone(self.profile.updated_at)
+        self.assertEqual(self.profile.monthly_savings, Decimal('500.00'))
+        self.assertEqual(str(self.profile), f"Profile {self.user}")
 
-    def test_str_representation(self):
-        self.assertEqual(str(self.profile), "testuser's Financial Profile")
+    def test_profile_user_unique_constraint(self):
+        with self.assertRaises(Exception):
+            FinancialProfile.objects.create(
+                user=self.user,
+                monthly_income=Decimal('3000.00')
+            )
 
 
-class DepositModelTests(TestCase):
+class DepositTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpassword'
-        )
-        self.profile = FinancialProfile.objects.create(
-            user=self.user,
-            monthly_income=Decimal('5000.00')
-        )
+        self.user = User.objects.create_user(username='testuser', password='password')
         self.deposit = Deposit.objects.create(
-            profile=self.profile,
-            amount=Decimal('1000.00'),
-            interest_rate=Decimal('5.25'),
-            start_date=timezone.now().date(),
-            increase_period=30,
-            accrual_type=Deposit.AccrualType.RECURRING
+            name='Test Deposit',
+            user=self.user,
+            accrual_type=Deposit.AccrualType.RECURRING,
+            start_amount=Decimal('1000.00'),
+            deposit_rate=Decimal('5.50'),
+            term_months=12,
+            replenishable=True
+        )
+        self.transaction = DepositTransaction.objects.create(
+            deposit=self.deposit,
+            amount=Decimal('200.00'),
+            type=DepositTransaction.TransactionType.MANUAL
         )
 
     def test_deposit_creation(self):
-        self.assertEqual(self.deposit.profile, self.profile)
-        self.assertEqual(self.deposit.amount, Decimal('1000.00'))
-        self.assertEqual(self.deposit.interest_rate, Decimal('5.25'))
+        self.assertEqual(self.deposit.name, 'Test Deposit')
+        self.assertEqual(self.deposit.user, self.user)
         self.assertEqual(self.deposit.accrual_type, Deposit.AccrualType.RECURRING)
-        self.assertTrue(self.deposit.is_active)
-        self.assertTrue(self.deposit.is_increasable_all_time)
+        self.assertEqual(self.deposit.start_amount, Decimal('1000.00'))
+        self.assertEqual(self.deposit.deposit_rate, Decimal('5.50'))
+        self.assertEqual(self.deposit.term_months, 12)
+        self.assertTrue(self.deposit.replenishable)
+        self.assertEqual(str(self.deposit), f"Test Deposit for {self.user}")
 
-    def test_str_representation(self):
-        self.assertEqual(str(self.deposit), "testuser's Deposit")
-
-    def test_one_time_deposit(self):
-        one_time_deposit = Deposit.objects.create(
-            profile=self.profile,
-            amount=Decimal('2000.00'),
-            interest_rate=Decimal('10.00'),
-            start_date=timezone.now().date(),
-            accrual_type=Deposit.AccrualType.ONE_TIME
+    def test_get_amount(self):
+        self.assertEqual(self.deposit.get_amount(), Decimal('1200.00'))
+        
+        # Add another transaction
+        DepositTransaction.objects.create(
+            deposit=self.deposit,
+            amount=Decimal('300.00'),
+            type=DepositTransaction.TransactionType.INTEREST
         )
-        self.assertEqual(one_time_deposit.accrual_type, Deposit.AccrualType.ONE_TIME)
-        self.assertEqual(one_time_deposit.amount, Decimal('2000.00'))
+        
+        self.assertEqual(self.deposit.get_amount(), Decimal('1500.00'))
 
-    def test_interest_accrual(self):
-        self.deposit.accrue_interest()
-        self.assertEqual(self.deposit.amount, Decimal('1000.00'))
-        self.assertEqual(self.deposit.last_updated.date(), timezone.now().date())
+    def test_get_history(self):
+        transactions = self.deposit.get_history()
+        self.assertEqual(transactions.count(), 1)
+        self.assertEqual(transactions.first(), self.transaction)
 
-    def test_recurring_deposit(self):
-        recurring_deposit = Deposit.objects.create(
-            profile=self.profile,
-            amount=Decimal('2000.00'),
-            interest_rate=Decimal('10.00'),
-            start_date=timezone.now().date(),
-            accrual_type=Deposit.AccrualType.RECURRING
+
+class DepositTransactionTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.deposit = Deposit.objects.create(
+            name='Test Deposit',
+            user=self.user,
+            start_amount=Decimal('1000.00')
         )
-        self.assertEqual(recurring_deposit.accrual_type, Deposit.AccrualType.RECURRING)
-        self.assertEqual(recurring_deposit.amount, Decimal('2000.00'))
-
-    def test_one_time_deposit(self):
-        one_time_deposit = Deposit.objects.create(
-            profile=self.profile,
-            amount=Decimal('2000.00'),
-            interest_rate=Decimal('10.00'),
-            start_date=timezone.now().date(),
-            accrual_type=Deposit.AccrualType.ONE_TIME
+        self.transaction = DepositTransaction.objects.create(
+            deposit=self.deposit,
+            amount=Decimal('150.00'),
+            type=DepositTransaction.TransactionType.INTEREST
         )
-        self.assertEqual(one_time_deposit.accrual_type, Deposit.AccrualType.ONE_TIME)
-        self.assertEqual(one_time_deposit.amount, Decimal('2000.00'))
 
-    def test_one_time_deposit(self):
-        one_time_deposit = Deposit.objects.create(
-            profile=self.profile,
-            amount=Decimal('2000.00'),
-            interest_rate=Decimal('10.00'),
-            start_date=timezone.now().date(),
-            accrual_type=Deposit.AccrualType.ONE_TIME
+    def test_transaction_creation(self):
+        self.assertEqual(self.transaction.deposit, self.deposit)
+        self.assertEqual(self.transaction.amount, Decimal('150.00'))
+        self.assertEqual(self.transaction.type, DepositTransaction.TransactionType.INTEREST)
+        self.assertIsNotNone(self.transaction.created_at)
+        
+        expected_str = f"Начисление процентов 150.00 on {self.transaction.created_at.date()}"
+        self.assertEqual(str(self.transaction), expected_str)
+
+    def test_transaction_ordering(self):
+        # Create a second transaction
+        second_transaction = DepositTransaction.objects.create(
+            deposit=self.deposit,
+            amount=Decimal('200.00'),
+            type=DepositTransaction.TransactionType.MANUAL
         )
-        self.assertEqual(one_time_deposit.accrual_type, Deposit.AccrualType.ONE_TIME)
-        self.assertEqual(one_time_deposit.amount, Decimal('2000.00'))
-
+        
+        # Get ordered transactions
+        transactions = self.deposit.transactions.all()
+        
+        # Check that most recent transaction comes first
+        self.assertEqual(transactions.first(), second_transaction)
+        self.assertEqual(transactions.last(), self.transaction)

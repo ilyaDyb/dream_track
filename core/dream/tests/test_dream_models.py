@@ -1,9 +1,14 @@
 from decimal import Decimal
+
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from core.authentication.models import User
+
 from core.dream.models import Dream, DreamImage, DreamLike
+
+User = get_user_model()
+
 
 class DreamModelTest(TestCase):
     def setUp(self):
@@ -103,4 +108,4 @@ class DreamLikeTest(TestCase):
         with self.assertRaises(IntegrityError):
             DreamLike.objects.create(user=self.user2, dream=self.dream)  # Duplicate like
 
-# python manage.py test core.dream.tests.DepositModelTests.test_interest_accrual
+
