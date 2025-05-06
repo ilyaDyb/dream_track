@@ -13,7 +13,7 @@ class FinancialProfile(models.Model):
     # savings_rate = models.DecimalField(max_digits=5, decimal_places=2, default=10)  # % откладываемых денег от заработной платы
     monthly_savings = models.DecimalField(
         max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)],
-        help_text="Процент откладываемых денег от зарплаты, не обязательный параметр"
+        help_text="Сумма откладываемых денег за каждый период начисления процентов если позволяет депозит"
     )
 
     def __str__(self):
@@ -40,9 +40,9 @@ class Deposit(models.Model):
         validators=[MinValueValidator(1)], default=30,
         help_text="Если указано — частота начисления процентов (в днях)"
     )
-
+    
     term_months   = models.PositiveIntegerField(
-        null=True, blank=True,
+        validators=[MinValueValidator(1)], null=True, blank=True,
         help_text="Если указано — число месяцев до окончания вклада"
     )
     replenishable = models.BooleanField(
@@ -77,19 +77,28 @@ class Deposit(models.Model):
 
 class DepositTransaction(models.Model):
     class TransactionType(models.TextChoices):
-        # CONTRIBUTION = 'CONTRIBUTION', _('Пополнение')
+        CONTRIBUTION = 'CONTRIBUTION', _('Пополнение')
         INTEREST     = 'INTEREST', _('Начисление процентов')
-        MANUAL       = 'MANUAL', _('Ручное пополнение')
+    type = models.CharField(max_length=12, choices=TransactionType.choices)
 
-    deposit = models.ForeignKey(Deposit, on_delete=models.CASCADE, related_name='transactions')
+    deposit = models.ForeignKey(Deposit, on_delete=models.PROTECT, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    balance_before = models.DecimalField(max_digits=10, decimal_places=2, editable=True, validators=[MinValueValidator(0)])
+    balance_after = models.DecimalField(max_digits=10, decimal_places=2, editable=True, validators=[MinValueValidator(0)])
     type = models.CharField(max_length=20, choices=TransactionType.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.get_type_display()} {self.amount} on {self.created_at.date()}"
+        return f"{self.get_type_display()} - Amount: {self.amount}, Date: {self.created_at.date()}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Only calculate on creation
+            self.balance_before = self.deposit.get_amount()
+            self.balance_after = self.balance_before + self.amount
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Транзакция по вкладу'
         verbose_name_plural = 'Транзакции по вкладу'
+
         ordering = ['-created_at']

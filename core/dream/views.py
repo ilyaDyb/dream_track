@@ -1,7 +1,6 @@
 from rest_framework import generics, mixins, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -17,7 +16,7 @@ class DreamView(mixins.CreateModelMixin,
                 mixins.DestroyModelMixin,
                 generics.GenericAPIView):
     queryset = Dream.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
 
     @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
@@ -44,8 +43,9 @@ class DreamView(mixins.CreateModelMixin,
             return DreamCUDSerializer
         return DreamSerializer
 
+
 class LikeDreamView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
 
     @swagger_auto_schema(manual_parameters=[AUTH_HEADER])

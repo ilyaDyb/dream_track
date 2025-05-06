@@ -1,10 +1,14 @@
 from django.db import transaction
+
 from rest_framework import serializers, status
+
 from core.dream.models import Dream, DreamImage
+from core.dream.validators import BaseImageValidator
 
 class DreamService:
-    @classmethod
-    def create_or_delete_like(cls, dream, user):
+
+    @staticmethod
+    def create_or_delete_like(dream, user):
         if dream.likes.filter(user=user).exists():
             dream.likes.remove(user)
             return 'Like removed', status.HTTP_200_OK
@@ -20,7 +24,7 @@ class DreamService:
         if len(images) == 1:
             is_preview_flags = [True]
 
-        cls._validate_images(images)
+        BaseImageValidator.validate_images(images)
 
         with transaction.atomic():
             dream = Dream.objects.create(user=user, **validated_data)
@@ -31,15 +35,15 @@ class DreamService:
     def update_dream_with_images(cls, instance, validated_data):
         images, is_preview_flags, keep_image_ids = cls._extract_images_flags_and_keep_ids(validated_data)
 
-        cls._validate_images(images)
+        BaseImageValidator.validate_images(images)
 
         with transaction.atomic():
             cls._update_fields(instance, validated_data)
             cls._sync_images(instance, images, is_preview_flags, keep_image_ids)
         return instance
 
-    @classmethod
-    def validate_dream_data(cls, data):
+    @staticmethod
+    def validate_dream_data(data):
         if 'is_preview_flags' in data:
             if data['is_preview_flags'].count(True) != 1:
                 raise serializers.ValidationError({'is_preview_flags': 'Exactly one image must be marked as preview.'})
@@ -48,20 +52,9 @@ class DreamService:
                 raise serializers.ValidationError({'images': 'Maximum 5 images allowed per dream.'})
             if len(data['images']) != len(data.get('is_preview_flags', [])):
                 raise serializers.ValidationError({'images': 'Number of images must match number of is_preview_flags.'})
-            cls._validate_images(data['images'])
+            BaseImageValidator.validate_images(data['images'])
 
     # ----------------- Private Methods -----------------
-
-    @classmethod
-    def _validate_images(cls, images):
-        max_file_size = 10 * 1024 * 1024  # 10MB
-        allowed_content_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-
-        for image in images:
-            if image.size > max_file_size:
-                raise serializers.ValidationError({'images': f'Image size must be less than 10MB. Got {image.size / (1024 * 1024):.2f}MB'})
-            if image.content_type not in allowed_content_types:
-                raise serializers.ValidationError({'images': f'File must be an image. Got {image.content_type}'})
 
     @staticmethod
     def _extract_images_and_flags(validated_data):

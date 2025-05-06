@@ -10,3 +10,5 @@ staticfiles/
 .media
 media/
 *images/
+.vscode/
+.pylintrc

@@ -18,7 +18,7 @@ class RegisterView(generics.CreateAPIView):
     """View for user registration"""
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -43,7 +43,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class LogoutView(generics.GenericAPIView):
     """View for blacklisting the refresh token on logout"""
     serializer_class = LogoutSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
