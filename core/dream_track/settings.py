@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'core.authentication',
     'core.dream',
     'core.finance',
-    'core.todo'
+    'core.todo',
+    'core.accounts'
 ]
 
 MIDDLEWARE = [

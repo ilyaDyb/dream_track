@@ -12,12 +12,12 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'avatar_url', 'bio')
+        fields = ('id', 'username')
         read_only_fields = ('id',)
 
     def get_avatar_url(self, obj):
         return obj.avatar_url
-
+    
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for creating user accounts"""
     password = serializers.CharField(
