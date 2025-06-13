@@ -19,13 +19,13 @@ from .serializers import (
     DepositTransactionSerializer
 )
 
-class FinancialProfileListCreateView(generics.ListCreateAPIView):
+class FinancialProfileListCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FinancialProfileSerializer
     
-    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+    # @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    # def get(self, request, *args, **kwargs):
+    #     return self.list(request, *args, **kwargs)
 
     @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
     def post(self, request, *args, **kwargs):

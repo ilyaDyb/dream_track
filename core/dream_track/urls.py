@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/', include('core.dream.urls')),
     path('api/', include('core.finance.urls')),
     path('api/', include('core.accounts.urls')),
+    path('api/', include('core.todo.urls')),
     path('swagger/', SCHEMA_VIEW.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', SCHEMA_VIEW.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
