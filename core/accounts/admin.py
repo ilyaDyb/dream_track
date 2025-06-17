@@ -1,6 +1,6 @@
 from django.contrib import admin
+from core.accounts.models import UserProfile, UserInventory, UserBoost
 
-from core.accounts import models
-
-# Register your models here.
-admin.site.register(models.UserProfile)
+admin.site.register(UserProfile)
+admin.site.register(UserInventory)
+admin.site.register(UserBoost)

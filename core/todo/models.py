@@ -28,18 +28,43 @@ class Todo(models.Model):
         ordering = ['-created_at']
 
     def execute_task(self):
-        self.is_completed = True
         self.deadline = None
+        self.is_completed = True
         self.executed_at = timezone.now()
 
-        xp_reward = get_xp_by_lvl(self.difficulty)
-        coins_reward = get_coins_by_lvl(self.difficulty)
-        with transaction.atomic():        
-            profile = self.user.profile
-            profile.xp += xp_reward
-            profile.balance += coins_reward
-            profile.save()
-            
+        todo_service = TodoService(self)
+
+        with transaction.atomic():
+            xp, coins = todo_service.apply_rewards()
             self.save()
         
-        return xp_reward, coins_reward
+        return xp, coins
+
+class TodoService:
+    def __init__(self, task: Todo) -> None:
+        self.task = task
+        self.user = task.user
+        self.profile = self.user.profile
+        self.boosts = {b.boost.boost_type: b.boost.multiplier for b in self.user.boosts.all()}
+
+    
+    def get_multiplier(self, boost_type: str) -> float:
+        return self.boosts.get(boost_type, 1.0)
+
+    def calculate_rewards(self):
+        xp = get_xp_by_lvl(self.task.difficulty)
+        coins = get_coins_by_lvl(self.task.difficulty)
+        xp *= self.get_multiplier('xp')
+        coins *= self.get_multiplier('coins')
+        return int(xp), int(coins)
+    
+    def apply_rewards(self):
+        xp, coins = self.calculate_rewards()
+        self.profile.xp += xp
+        self.profile.balance += coins
+        self.profile.save()
+        return xp, coins
+
+
+        
+        

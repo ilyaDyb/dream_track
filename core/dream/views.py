@@ -8,6 +8,7 @@ from core.docs.templates import AUTH_HEADER
 from core.dream.models import Dream
 from core.dream.serializers import DreamCUDSerializer, DreamSerializer
 from core.dream.services import DreamService
+from core.utils.paginator import CustomPageNumberPagination
 
 
 class DreamView(mixins.CreateModelMixin,
@@ -43,6 +44,34 @@ class DreamView(mixins.CreateModelMixin,
             return DreamCUDSerializer
         return DreamSerializer
 
+class DreamListView(generics.ListAPIView):
+    serializer_class = DreamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+    
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Dream.objects.none()
+        
+        return Dream.objects.filter(user=self.request.user)
+
+class PublicDreamListView(generics.ListAPIView):
+    serializer_class = DreamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Dream.objects.none()
+        
+        return Dream.objects.filter(is_private=False)
 
 class LikeDreamView(APIView):
     permission_classes = [permissions.IsAuthenticated]
