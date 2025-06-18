@@ -5,6 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.todo.utils import get_xp_by_lvl, get_coins_by_lvl
+from core.accounts.services import UserStreakService
 
 User = get_user_model()
 
@@ -58,13 +59,18 @@ class TodoService:
         coins *= self.get_multiplier('coins')
         return int(xp), int(coins)
     
-    def apply_rewards(self):
+    def apply_rewards(self) -> tuple[int, int]:
+        # Streak earn
+        self._increase_streak()
+
+        # Profile earn
         xp, coins = self.calculate_rewards()
         self.profile.xp += xp
         self.profile.balance += coins
         self.profile.save()
         return xp, coins
 
-
         
+    def _increase_streak(self) -> None:
+        UserStreakService(self.user).increase_streak()
         

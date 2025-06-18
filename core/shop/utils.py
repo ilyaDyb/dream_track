@@ -17,12 +17,12 @@ stickers = [
     ("📈 Momentum Unlocked", "Ты начал серию — теперь только ускорение", "https://i.imgur.com/vVnGLRL.png", "epic", False),
     ("📚 Weekly Learner", "Ты завершил неделю с обучением каждый день", "https://i.imgur.com/z28dx3q.png", "epic", False),
     
-    ("🔥 Streak Demon", "Ты держишь серию 🔥 Это уровень", "https://i.imgur.com/lF3r3pK.png", "legendary", True),
     ("🏔 Mind Over Matter", "Ты сделал то, что не хотелось. Уважение", "https://i.imgur.com/g4fxCJ3.png", "legendary", True),
     ("🧘 Master of Stillness", "Ты освоил тишину и спокойствие", "https://i.imgur.com/T4P7k8F.png", "legendary", True),
     ("🥇 Gold Routine", "Ты прожил идеальный день", "https://i.imgur.com/mZgF8v2.png", "legendary", True),
     ("👑 King of Consistency", "Ты держишь ритм недели. Это уровень босса", "https://i.imgur.com/0ldIlIN.png", "legendary", True),
 ]
+
 
 import requests
 from django.core.files.base import ContentFile

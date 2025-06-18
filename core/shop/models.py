@@ -37,6 +37,9 @@ class BaseShopItem(models.Model):
         abstract = False
 
     def buy_item(self, user):
+        if not self.is_active:
+            return False, 'Предмет не доступен'
+
         if self.is_donation_only:
             if self.price > user.profile.donation_balance:
                 return False, 'Недостаточно кристаллов'

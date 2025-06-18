@@ -104,7 +104,7 @@ class TodoRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ExecuteThrottle(UserRateThrottle):
-    rate = '20/day'
+    rate = '30/day'
 
 class TodoExecuteView(APIView):
     permission_classes = [permissions.IsAuthenticated]

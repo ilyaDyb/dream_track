@@ -1,21 +1,34 @@
 from rest_framework import serializers
+
+from core.accounts.services import UserStreakService
 from core.shop.models import BaseShopItem, BoostItem, AvatarItem, BackgroundItem, IconItem
 from core.accounts.models import UserProfile, UserInventory
 
+
+# Profile
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     level = serializers.IntegerField(read_only=True)
+    streak = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
         fields = [
             'id', 'username', 'email', 'avatar', 'background',
-            'icon', 'xp', 'level', 'balance', 'donation_balance'
+            'icon', 'xp', 'level', 'balance', 'donation_balance', 'streak'
         ]
-        read_only_fields = ['id', 'xp', 'level', 'balance', 'donation_balance']
+        read_only_fields = ['id', 'xp', 'level', 'balance', 'donation_balance', 'streak']
 
-#Inventory
+    def get_streak(self, obj):
+        streak = UserStreakService(obj.user).get_or_create_streak()
+        return {
+            'current_streak': streak.current_streak,
+            'max_streak': streak.max_streak,
+            'last_active': streak.last_active
+        }
+
+# Inventory
 class BaseShopItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseShopItem

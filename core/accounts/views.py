@@ -8,7 +8,6 @@ from rest_framework.response import Response
 
 from core.accounts.models import UserProfile, UserInventory
 from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer
-from core.shop.models import BaseShopItem
 from core.docs.templates import AUTH_HEADER
 from core.utils.paginator import CustomPageNumberPagination
 

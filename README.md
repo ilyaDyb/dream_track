@@ -33,6 +33,15 @@ DreamTrack is a gamified task and goal tracker combining productivity tools with
 - Duration-based, with safeguards against stacking same-type boosts.
 - Automatically expires and prevents multiple boosts of the same type.
 
+### 🔥 Streak System
+
+- Tracks user's daily activity streak.
+- Rewards consistent usage with special badges and bonuses.
+- Automatically updates streaks based on user activity.
+- Provides milestone rewards for reaching streak thresholds.
+- Motivates users to maintain daily engagement.
+
+
 ### 📄 Swagger API Docs
 
 - Full API schema using drf-yasg.
