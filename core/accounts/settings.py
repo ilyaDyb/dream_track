@@ -5,12 +5,13 @@ STREAK_REWARDS = {
     365: {'xp': 1000, 'balance': 2000}
 }
 
-
-#TODO
-# Type Name Desc Image Rarity IsDonationOnly IsActive
-# ACHIEVEMENTS = {
-#     7:     ("Icon", "🔥 Streak Demon 7", "Неделя без перерыва! Отличное начало!", "https://i.imgur.com/lF3r3pK.png", "legendary", True, False),
-#     30:    ("Icon", "🔥 Streak Demon 30", "Месяц без перерыва! Впечатляющая дисциплина!", "https://i.imgur.com/lF3r3pK.png", "legendary", True, False),
-#     100:   ("Icon", "🔥 Streak Demon 100", "100 дней без перерыва! Невероятная сила воли!", "https://i.imgur.com/lF3r3pK.png", "legendary", True, False),
-#     365:   ("Icon", "🔥 Streak Demon 365", "Целый год без перерыва! Ты легенда!", "https://i.imgur.com/lF3r3pK.png", "legendary", True, False),
-# }
+"""
+Unique trigger names:
+- streak_updated
+- task_completed
+- task_failed
+- dream_completed
+- item_bought
+- item_equipped
+- total_purchases
+"""

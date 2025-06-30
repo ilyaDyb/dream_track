@@ -1,0 +1,12 @@
+[
+    {
+        "model": "shop.backgrounditem",
+        "pk": 43,
+        "fields": {}
+    },
+    {
+        "model": "shop.backgrounditem",
+        "pk": 44,
+        "fields": {}
+    }
+]

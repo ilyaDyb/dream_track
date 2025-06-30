@@ -59,6 +59,19 @@ class Dream(models.Model):
             return 0
         return int(sum_transactions / self.price * 100)
 
+    def foo(self):
+        '''
+        Здесь в будущем должна быть обработка или вызов обработки выполнения шага к мечте, с дальнейшим выховом метода achieve
+        '''
+        pass
+
+    def _achieve(self):
+        self.is_active = False
+        self.save()
+        self.__update_progress()
+
+    def __update_progress(self):
+        UserProgressService(self.user).update_stat('dreams_achieved')
 
     class Meta:
         verbose_name = _('Мечта')

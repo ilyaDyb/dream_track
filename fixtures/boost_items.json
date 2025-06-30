@@ -1,0 +1,20 @@
+[
+    {
+        "model": "shop.boostitem",
+        "pk": 42,
+        "fields": {
+            "boost_type": "xp",
+            "multiplier": 2.0,
+            "duration_minutes": 360
+        }
+    },
+    {
+        "model": "shop.boostitem",
+        "pk": 45,
+        "fields": {
+            "boost_type": "money",
+            "multiplier": 4.0,
+            "duration_minutes": 1440
+        }
+    }
+]

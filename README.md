@@ -41,6 +41,20 @@ DreamTrack is a gamified task and goal tracker combining productivity tools with
 - Provides milestone rewards for reaching streak thresholds.
 - Motivates users to maintain daily engagement.
 
+### 🏆 Achievements
+- Users earn achievements for reaching activity milestones.
+- Supports XP, coins, and item rewards.
+- Automatically granted based on triggers (e.g., completed tasks, bought items).
+
+### 📊 Statistics
+- Tracks key user activity: completed tasks, bought/equipped items, finished dreams.
+- Updated automatically via UserProgressService (in progress).
+- Used internally to validate achievement conditions.
+
+### ✅ Progress Tracking
+- Unified service to update statistics and check for achievements.
+- Triggered inside business logic: purchases, completions, etc.
+- Easily extensible with new stat types and triggers.
 
 ### 📄 Swagger API Docs
 

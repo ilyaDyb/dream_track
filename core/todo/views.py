@@ -64,7 +64,11 @@ class TodoListCreateView(generics.ListCreateAPIView):
         order_by = self.request.query_params.get('order_by', '-created_at')
         expired = self.request.query_params.get('expired', None)
         expired = expired == 'true' if expired else None
-        queryset = queryset.filter(user=self.request.user, is_completed=completed)
+        queryset = queryset.filter(
+            user=self.request.user, 
+            is_completed=completed,
+            is_dream_step=False
+        )
 
         if expired is not None:
             now = timezone.now().date()

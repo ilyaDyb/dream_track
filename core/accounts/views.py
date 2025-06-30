@@ -6,8 +6,9 @@ from drf_yasg import openapi
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
-from core.accounts.models import UserProfile, UserInventory
-from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer
+from core.accounts.models import Achievement, UserProfile, UserInventory, UserAchievement
+from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer, AchievementSerializer
+from core.accounts.services import UserAchievementService
 from core.docs.templates import AUTH_HEADER
 from core.utils.paginator import CustomPageNumberPagination
 
@@ -73,3 +74,44 @@ class ApplyInventoryItemView(APIView):
 #         profile.avatar = avatar
 #         profile.save()
 #         return Response({'avatar_url': profile.avatar_url}, status=status.HTTP_200_OK)
+
+class AchievementListView(generics.ListAPIView):
+    serializer_class = AchievementSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+
+    @swagger_auto_schema(manual_parameters=[
+        AUTH_HEADER,
+        openapi.Parameter('all', openapi.IN_QUERY, description='Show all achievements', type=openapi.TYPE_BOOLEAN),
+        openapi.Parameter('claimed', openapi.IN_QUERY, description='Filter by claimed status', type=openapi.TYPE_BOOLEAN),
+    ])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Achievement.objects.none()
+            
+        all_achievements = self.request.query_params.get('all', 'false').lower() == 'true'
+        claimed = self.request.query_params.get('claimed', 'false').lower() == 'true'
+        
+        user_achievements = UserAchievement.objects.filter(user=self.request.user)
+        
+        if all_achievements:
+            return Achievement.objects.all()
+        
+        return Achievement.objects.filter(
+            userachievement__in=user_achievements,
+            userachievement__is_claimed=claimed
+        )
+
+
+class AchievementClaimView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        achievement_id = kwargs.get('achievement_id')
+        achievement = get_object_or_404(Achievement, id=achievement_id)
+        UserAchievementService(request.user).activate_achievement(achievement_id)
+        return Response({'message': f"Достижение {achievement.title} успешно активировано"}, status=status.HTTP_200_OK)

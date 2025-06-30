@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from core.accounts.services import UserStreakService
 from core.shop.models import BaseShopItem, BoostItem, AvatarItem, BackgroundItem, IconItem
-from core.accounts.models import UserProfile, UserInventory
+from core.accounts.models import Achievement, UserProfile, UserInventory
 
 
 # Profile
@@ -71,3 +71,10 @@ class UserInventorySerializer(serializers.ModelSerializer):
         model = UserInventory
         fields = ['id', 'user', 'item', 'is_equipped']
         read_only_fields = ['id']
+
+
+# Achievements
+class AchievementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Achievement
+        exclude = ['code', 'trigger', 'condition_data']

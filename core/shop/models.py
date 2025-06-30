@@ -48,8 +48,12 @@ class BaseShopItem(models.Model):
             if self.price > user.profile.balance:
                 return False, 'Недостаточно монет'
             user.profile.balance -= self.price
-        user.profile.save()
-        UserInventory.objects.create(user=user, item=self)
+            
+        with transaction.atomic():
+            user.profile.save()
+            UserInventory.objects.create(user=user, item=self)
+            self.__update_progress()
+
         return True, 'Предмет успешно куплен'
 
     def __str__(self):
@@ -64,6 +68,9 @@ class BaseShopItem(models.Model):
         }.get(self.type)
 
         return item_class.objects.get(id=self.id)
+
+    def __update_progress(self):
+        UserProgressService(self.user).update_stat('items_bought')
 
 class BackgroundItem(BaseShopItem, SaveableItemMixin, ApplicableItemMixin):
     def save(self, *args, **kwargs):

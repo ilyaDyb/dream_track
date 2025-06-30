@@ -4,6 +4,8 @@ from core.accounts.settings import STREAK_REWARDS
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from core.accounts.models import Achievement, UserAchievement, UserInventory
 
 User = get_user_model()
 
@@ -57,3 +59,73 @@ class UserStreakService:
         profile.xp += reward['xp']
         profile.balance += reward['balance']
         profile.save(update_fields=['xp', 'balance'])
+
+
+class AchievementService:
+    AVAILIBLE_TRIGGERS = [
+        'streak_updated',
+        'task_completed',
+        'task_failed',
+        'dream_completed',
+        'item_bought',
+        'item_equipped',
+        'total_purchases'
+    ]
+
+    def __init__(self, user):
+        self.user = user
+
+    def check_achievements(self, trigger: str, payload: dict):
+        if trigger not in self.AVAILIBLE_TRIGGERS:
+            raise ValueError(f"Invalid trigger: {trigger}")
+        achievements = Achievement.objects.filter(trigger=trigger)
+        for achievement in achievements:
+            if UserAchievement.objects.filter(user=self.user, achievement=achievement).exists():
+                continue
+
+            if self._check_condition(achievement.condition_data, payload):
+                self._give_achievement(achievement)
+    
+    def _check_condition(self, condition, payload):
+        for key, value in condition.items():
+            if key not in payload or payload[key] < value:
+                return False
+        return True
+
+    def _give_achievement(self, achievement):
+        with transaction.atomic():
+            UserAchievement.objects.create(user=self.user, achievement=achievement)
+
+class UserAchievementService:
+    def __init__(self, user):
+        self.user = user
+        
+    def activate_achievement(self, achievement_id):
+        achievement = Achievement.objects.get(id=achievement_id)
+        
+        with transaction.atomic():
+            user_achievement = UserAchievement.objects.filter(
+                user=self.user, 
+                achievement=achievement,
+                is_claimed=False
+            ).first()
+            
+            if not user_achievement:
+                return
+                
+            self._reward_benefits(achievement)
+            self._update_user_achievement(user_achievement)
+            
+    def _reward_benefits(self, achievement):
+        profile = self.user.profile
+        profile.xp += achievement.reward_xp
+        profile.balance += achievement.reward_coins
+        profile.save(update_fields=['xp', 'balance'])
+
+        for item in achievement.reward_items.all():
+            UserInventory.objects.create(user=self.user, item=item)
+
+    def _update_user_achievement(self, user_achievement):
+        user_achievement.is_claimed = True
+        user_achievement.save(update_fields=['is_claimed'])
+

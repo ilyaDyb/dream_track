@@ -84,3 +84,30 @@ class UserStreak(models.Model):
 
     def __str__(self):
         return f'{self.user.username} | Current streak: {self.current_streak} | Max streak: {self.max_streak}'
+
+
+class Achievement(models.Model):
+    code = models.SlugField(unique=True)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    
+    trigger = models.CharField(max_length=100)
+    condition_data = models.JSONField()
+    
+    reward_xp = models.PositiveIntegerField(default=0)
+    reward_coins = models.PositiveIntegerField(default=0)
+    reward_items = models.ManyToManyField('shop.BaseShopItem', blank=True)
+    
+    one_time = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.title
+    
+
+class UserAchievement(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='achievements')
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    is_claimed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ['user', 'achievement']

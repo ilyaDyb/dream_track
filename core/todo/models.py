@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import transaction
 from django.utils import timezone
 
+from core.accounts.progress import UserActionProgressService
 from core.todo.utils import get_xp_by_lvl, get_coins_by_lvl
 from core.accounts.services import UserStreakService
 
@@ -19,6 +20,8 @@ class Todo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     executed_at = models.DateTimeField(blank=True, null=True)
     is_completed = models.BooleanField(default=False)
+
+    is_dream_step = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -38,6 +41,7 @@ class Todo(models.Model):
         with transaction.atomic():
             xp, coins = todo_service.apply_rewards()
             self.save()
+            UserActionProgressService(self.user).update_stat('task_completed')
         
         return xp, coins
 
@@ -46,7 +50,7 @@ class TodoService:
         self.task = task
         self.user = task.user
         self.profile = self.user.profile
-        self.boosts = {b.boost.boost_type: b.boost.multiplier for b in self.user.boosts.all()}
+        self.boosts = {b.boost.boost_type: b.boost.multiplier for b in self.user.boosts.all() if b.expires_at > timezone.now()}
 
     
     def get_multiplier(self, boost_type: str) -> float:

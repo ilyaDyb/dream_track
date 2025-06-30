@@ -1,10 +1,14 @@
 from unittest.mock import patch, MagicMock
+
 from django.test import TestCase
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+
 from datetime import timedelta
 
-from core.accounts.models import UserStreak
-from core.accounts.services import UserStreakService
+from core.accounts.models import UserStreak, Achievement, UserAchievement, UserInventory
+from core.accounts.services import UserStreakService, AchievementService, UserAchievementService
+from core.shop.models import BackgroundItem
 
 
 class UserStreakServiceTests(TestCase):
@@ -101,3 +105,61 @@ class UserStreakServiceTests(TestCase):
         service._reward_milestone()
         self.assertEqual(self.profile.xp, 200)
         self.assertEqual(self.profile.balance, 200)
+
+User = get_user_model()
+
+class AchievementIntegrationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='pass')
+        self.profile = self.user.profile
+
+        self.item = BackgroundItem.objects.create(
+            name='Test BG',
+            rarity='common',
+            description='test',
+            image='bg.jpg',
+            price=0,
+            type=BackgroundItem.ItemType.BACKGROUND
+        )
+
+        self.achievement = Achievement.objects.create(
+            code='test_ach',
+            title='Test Achievement',
+            description='Test Desc',
+            trigger='test_trigger',
+            condition_data={'tasks_completed': 3},
+            reward_xp=100,
+            reward_coins=200,
+        )
+        self.achievement.reward_items.add(self.item)
+
+    def test_achievement_award_and_claim(self):
+        service = AchievementService(self.user)
+        service.check_achievements('test_trigger', {'tasks_completed': 3})
+
+        self.assertTrue(UserAchievement.objects.filter(user=self.user, achievement=self.achievement).exists())
+
+        claim_service = UserAchievementService(self.user)
+        claim_service.activate_achievement(self.achievement.id)
+
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.xp, 100)
+        self.assertEqual(self.profile.balance, 200)
+
+        inventory = UserInventory.objects.filter(user=self.user, item=self.item).first()
+        self.assertIsNotNone(inventory)
+        self.assertTrue(UserAchievement.objects.get(user=self.user, achievement=self.achievement).is_claimed)
+
+    def test_duplicate_achievement_not_given(self):
+        UserAchievement.objects.create(user=self.user, achievement=self.achievement)
+
+        service = AchievementService(self.user)
+        service.check_achievements('test_trigger', {'tasks_completed': 3})
+
+        self.assertEqual(UserAchievement.objects.filter(user=self.user, achievement=self.achievement).count(), 1)
+
+    def test_condition_check_fails(self):
+        service = AchievementService(self.user)
+        service.check_achievements('test_trigger', {'tasks_completed': 2})
+
+        self.assertFalse(UserAchievement.objects.filter(user=self.user, achievement=self.achievement).exists())

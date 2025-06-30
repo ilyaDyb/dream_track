@@ -1,0 +1,137 @@
+[
+    {
+        "model": "accounts.achievement",
+        "pk": 1,
+        "fields": {
+            "code": "first_task",
+            "title": "Первый шаг",
+            "description": "Выполни свою первую задачу.",
+            "trigger": "task_completed",
+            "condition_data": {"tasks_completed": 1},
+            "reward_xp": 10,
+            "reward_coins": 10,
+            "reward_items": [23],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 2,
+        "fields": {
+            "code": "hero_100",
+            "title": "Настоящий герой",
+            "description": "Заверши 100 задач.",
+            "trigger": "task_completed",
+            "condition_data": {"tasks_completed": 100},
+            "reward_xp": 300,
+            "reward_coins": 300,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 3,
+        "fields": {
+            "code": "streak_7",
+            "title": "7 дней привычки",
+            "description": "Подряд выполняй задачи 7 дней.",
+            "trigger": "streak_updated",
+            "condition_data": {"current_streak": 7},
+            "reward_xp": 100,
+            "reward_coins": 100,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 4,
+        "fields": {
+            "code": "streak_30",
+            "title": "Железная воля",
+            "description": "30 дней подряд без пропусков.",
+            "trigger": "streak_updated",
+            "condition_data": {"current_streak": 30},
+            "reward_xp": 300,
+            "reward_coins": 350,
+            "reward_items": [37],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 5,
+        "fields": {
+            "code": "collector",
+            "title": "Коллекционер",
+            "description": "Собери 5 уникальных предметов.",
+            "trigger": "item_equipped",
+            "condition_data": {"unique_items_equipped": 5},
+            "reward_xp": 100,
+            "reward_coins": 50,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 6,
+        "fields": {
+            "code": "first_purchase",
+            "title": "Первая покупка",
+            "description": "Купи первый предмет в магазине.",
+            "trigger": "shop_purchase",
+            "condition_data": {"total_purchases": 1},
+            "reward_xp": 25,
+            "reward_coins": 25,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 7,
+        "fields": {
+            "code": "dream_done",
+            "title": "Дерево мечты",
+            "description": "Заверши первую мечту.",
+            "trigger": "dream_completed",
+            "condition_data": {"dreams_completed": 1},
+            "reward_xp": 100,
+            "reward_coins": 100,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 8,
+        "fields": {
+            "code": "dream_architect",
+            "title": "Архитектор мечты",
+            "description": "Выполни 5 квестов мечты.",
+            "trigger": "quest_completed",
+            "condition_data": {"quests_completed": 5},
+            "reward_xp": 300,
+            "reward_coins": 150,
+            "reward_items": [],
+            "one_time": true
+        }
+    },
+    {
+        "model": "accounts.achievement",
+        "pk": 9,
+        "fields": {
+            "code": "marathoner",
+            "title": "Марафонец",
+            "description": "Заверши 365 задач.",
+            "trigger": "task_completed",
+            "condition_data": {"tasks_completed": 365},
+            "reward_xp": 1000,
+            "reward_coins": 5000,
+            "reward_items": [],
+            "one_time": true
+        }
+    }
+]

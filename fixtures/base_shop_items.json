@@ -1,0 +1,352 @@
+[
+    {
+        "model": "shop.baseshopitem",
+        "pk": 1,
+        "fields": {
+            "name": "CS avatar",
+            "rarity": "common",
+            "description": "...",
+            "image": "shop_items/images.jpeg",
+            "price": 500,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "avatar"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 22,
+        "fields": {
+            "name": "☀️ Early Bird",
+            "rarity": "common",
+            "description": "Ты встал до будильника. Монстр дисциплины",
+            "image": "shop_items/_Early_Bird_Mnalubq.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 23,
+        "fields": {
+            "name": "📅 Habit Builder",
+            "rarity": "common",
+            "description": "Один день — это начало. Продолжай!",
+            "image": "shop_items/_Habit_Builder_kIAvvQ7.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 24,
+        "fields": {
+            "name": "📵 Focus Master",
+            "rarity": "common",
+            "description": "Никаких отвлечений. Ты в зоне",
+            "image": "shop_items/_Focus_Master_vBTxQBW.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 25,
+        "fields": {
+            "name": "📖 10 Pages Rule",
+            "rarity": "common",
+            "description": "Ты прочитал свои 10 страниц",
+            "image": "shop_items/_10_Pages_Rule_x4eXn0P.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 26,
+        "fields": {
+            "name": "✅ One Done",
+            "rarity": "common",
+            "description": "Ты выполнил хотя бы одну задачу",
+            "image": "shop_items/_One_Done_Z0oiZXi.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 27,
+        "fields": {
+            "name": "🚶 Walk & Think",
+            "rarity": "common",
+            "description": "Ты прогулялся и дал мозгу отдохнуть",
+            "image": "shop_items/_Walk__Think_nr1dZFy.png",
+            "price": 150,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 28,
+        "fields": {
+            "name": "🥗 Health Streak",
+            "rarity": "rare",
+            "description": "Ты поел здоровую еду. Красавчик",
+            "image": "shop_items/_Health_Streak_vPOLBNW.png",
+            "price": 400,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 29,
+        "fields": {
+            "name": "📓 Journaled Today",
+            "rarity": "rare",
+            "description": "Ты записал свои мысли — душа благодарит",
+            "image": "shop_items/_Journaled_Today_rankL7A.png",
+            "price": 400,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 30,
+        "fields": {
+            "name": "🧼 Clean Desk",
+            "rarity": "rare",
+            "description": "Ты убрался на столе. Ментальный порядок",
+            "image": "shop_items/_Clean_Desk_NmJZnUl.png",
+            "price": 400,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 31,
+        "fields": {
+            "name": "🔁 Showed Up Again",
+            "rarity": "rare",
+            "description": "Ты вернулся к задаче, даже если не хотел",
+            "image": "shop_items/_Showed_Up_Again_YgIa9vQ.png",
+            "price": 400,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 32,
+        "fields": {
+            "name": "⏳ No Zero Day",
+            "rarity": "rare",
+            "description": "Ты не допустил нуля. Уважение",
+            "image": "shop_items/_No_Zero_Day_zx8u0Pu.png",
+            "price": 400,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 33,
+        "fields": {
+            "name": "🔒 Deep Work Mode",
+            "rarity": "epic",
+            "description": "Ты провёл 2 часа в глубокофокусной работе",
+            "image": "shop_items/_Deep_Work_Mode_9H7SAiS.png",
+            "price": 800,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 34,
+        "fields": {
+            "name": "🌊 Flow State",
+            "rarity": "epic",
+            "description": "Ты вошёл в поток. Это не часто случается",
+            "image": "shop_items/_Flow_State_HtSCqAL.png",
+            "price": 800,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 35,
+        "fields": {
+            "name": "📈 Momentum Unlocked",
+            "rarity": "epic",
+            "description": "Ты начал серию — теперь только ускорение",
+            "image": "shop_items/_Momentum_Unlocked_6Tjfnal.png",
+            "price": 800,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 36,
+        "fields": {
+            "name": "📚 Weekly Learner",
+            "rarity": "epic",
+            "description": "Ты завершил неделю с обучением каждый день",
+            "image": "shop_items/_Weekly_Learner_w23qDB5.png",
+            "price": 800,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 37,
+        "fields": {
+            "name": "🔥 Streak Demon",
+            "rarity": "legendary",
+            "description": "Ты держишь серию 🔥 Это уровень!",
+            "image": "shop_items/_Streak_Demon_TOTL5i8.png",
+            "price": 0,
+            "is_donation_only": false,
+            "is_active": false,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 38,
+        "fields": {
+            "name": "🏔 Mind Over Matter",
+            "rarity": "legendary",
+            "description": "Ты сделал то, что не хотелось. Уважение",
+            "image": "shop_items/_Mind_Over_Matter_qGA0TKn.png",
+            "price": 200,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 39,
+        "fields": {
+            "name": "🧘 Master of Stillness",
+            "rarity": "legendary",
+            "description": "Ты освоил тишину и спокойствие",
+            "image": "shop_items/_Master_of_Stillness_w4WQJLI.png",
+            "price": 200,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 40,
+        "fields": {
+            "name": "🥇 Gold Routine",
+            "rarity": "legendary",
+            "description": "Ты прожил идеальный день",
+            "image": "shop_items/_Gold_Routine_vb0KoeI.png",
+            "price": 200,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 41,
+        "fields": {
+            "name": "👑 King of Consistency",
+            "rarity": "legendary",
+            "description": "Ты держишь ритм недели. Это уровень босса",
+            "image": "shop_items/_King_of_Consistency_LgfYapq.png",
+            "price": 200,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "icon"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 42,
+        "fields": {
+            "name": "2X XP Potion",
+            "rarity": "rare",
+            "description": "Увиличивающий вдвое получаемый опыт зелье",
+            "image": "shop_items/xppotion.jpg",
+            "price": 300,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "boost"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 43,
+        "fields": {
+            "name": "🌠 Cosmos Drive",
+            "rarity": "legendary",
+            "description": "Вдохновляющий космос, вечный прогресс",
+            "image": "shop_items/pexels-eberhardgross-2098428.jpg",
+            "price": 10000,
+            "is_donation_only": false,
+            "is_active": true,
+            "type": "background"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 44,
+        "fields": {
+            "name": "💀💀💀",
+            "rarity": "common",
+            "description": "???",
+            "image": "shop_items/pexels-ahmedadly-1270184.jpg",
+            "price": 999,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "background"
+        }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 45,
+        "fields": {
+            "name": "4X Coins Boost 💀",
+            "rarity": "legendary",
+            "description": "Учетверённые монеты! Твой кошелёк плачет от счастья",
+            "image": "shop_items/4X_coin_potion.webp",
+            "price": 100,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "boost"
+        }
+    }
+]

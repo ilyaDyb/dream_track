@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'core.finance',
     'core.todo',
     'core.accounts',
-    'core.shop'
+    'core.shop',
+    'core.statistic'
 ]
 
 MIDDLEWARE = [

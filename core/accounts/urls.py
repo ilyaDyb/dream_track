@@ -1,6 +1,6 @@
 
 from django.urls import path
-from .views import UserProfileView, ApplyInventoryItemView, UserInventoryView
+from .views import UserProfileView, ApplyInventoryItemView, UserInventoryView, AchievementListView, AchievementClaimView
 
 app_name = 'accounts'
 
@@ -13,4 +13,9 @@ urlpatterns = [
     # inventory
     path('inventory/', UserInventoryView.as_view(), name='inventory'),
     path('inventory/<int:item_id>/apply/', ApplyInventoryItemView.as_view(), name='inventory_apply'),
+
+    # achievements
+    path('achievements/', AchievementListView.as_view(), name='achievements'),
+    path('achievements/<int:achievement_id>/claim/', AchievementClaimView.as_view(), name='achievement_claim'),
+
 ]
