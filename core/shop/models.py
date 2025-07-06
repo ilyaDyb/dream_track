@@ -36,7 +36,7 @@ class BaseShopItem(models.Model):
     class Meta:
         abstract = False
 
-    def buy_item(self, user):
+    def buy_item(self, user) -> tuple[bool, str]:
         if not self.is_active:
             return False, 'Предмет не доступен'
 
@@ -71,6 +71,7 @@ class BaseShopItem(models.Model):
 
     def __update_progress(self):
         UserProgressService(self.user).update_stat('items_bought')
+        AchievementService(self.user).check_achievements('total_purchases', {'total_purchases': self.user.inventory.count()})
 
 class BackgroundItem(BaseShopItem, SaveableItemMixin, ApplicableItemMixin):
     def save(self, *args, **kwargs):

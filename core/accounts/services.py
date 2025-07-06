@@ -1,11 +1,12 @@
 
 from core.accounts.models import UserStreak
 from core.accounts.settings import STREAK_REWARDS
+from core.accounts.models import Achievement, UserAchievement, UserInventory
+from core.accounts.progress import UserActionProgressService
 
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from core.accounts.models import Achievement, UserAchievement, UserInventory
 
 User = get_user_model()
 
@@ -39,6 +40,8 @@ class UserStreakService:
         #TODO: сделать более гибко
         if self.streak.current_streak in STREAK_REWARDS.keys():
             self._reward_streak_bonus()
+        uaps = UserActionProgressService(user=self.user)
+        uaps.update_streak()
 
     def reset_streak(self) -> None:
         self.streak.current_streak = 0

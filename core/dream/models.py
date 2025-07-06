@@ -49,15 +49,18 @@ class Dream(models.Model):
                 for image in self.images.all()
             ],
             'likes_count': self.likes.count(),
-            'percentage_achieved': self._get_percentage_achieved()
+            # 'percentage_achieved': self._get_percentage_achieved()
         }
 
 
-    def _get_percentage_achieved(self):
-        sum_transactions = self.user.deposits.aggregate(total=Sum('transactions__amount'))['total'] or 0
-        if not self.price:
-            return 0
-        return int(sum_transactions / self.price * 100)
+    # def _get_percentage_achieved(self):
+    #     sum_transactions = self.user.deposits.aggregate(total=Sum('transactions__amount'))['total'] or 0
+    #     if not self.price:
+    #         return 0
+    #     return int(sum_transactions / self.price * 100)
+
+    # def _get_percentage_achieved(self):
+    #     pass
 
     def foo(self):
         '''
@@ -71,7 +74,7 @@ class Dream(models.Model):
         self.__update_progress()
 
     def __update_progress(self):
-        UserProgressService(self.user).update_stat('dreams_achieved')
+        UserProgressService(self.user).update_stat('dreams_completed')
 
     class Meta:
         verbose_name = _('Мечта')

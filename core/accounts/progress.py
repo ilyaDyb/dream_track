@@ -1,5 +1,5 @@
 
-from core.accounts.services import UserStreakService, AchievementService
+from core.accounts.services import AchievementService
 from core.accounts.models import User
 
 class UserActionProgressService:
@@ -22,7 +22,6 @@ class UserActionProgressService:
         AchievementService(self.user).check_achievements(key, payload)
 
     def update_streak(self):
-        UserStreakService(self.user).increase_streak()
         self._check_achievements('streak_updated', {'streak': self.user.streak.current_streak})
    
 
