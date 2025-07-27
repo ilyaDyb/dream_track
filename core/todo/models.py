@@ -22,6 +22,7 @@ class Todo(models.Model):
     is_completed = models.BooleanField(default=False)
 
     is_dream_step = models.BooleanField(default=False)
+    dream = models.ForeignKey('dream.Dream', on_delete=models.CASCADE, related_name='steps', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -30,6 +31,16 @@ class Todo(models.Model):
         verbose_name = 'Задача'
         verbose_name_plural = 'Задачи'
         ordering = ['-created_at']
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        
+        if self.is_dream_step and self.dream is None:
+            raise ValidationError("Dream step must be associated with a dream")
+    
+        if not self.is_dream_step and self.dream is not None:
+            raise ValidationError("Non-dream step should not be associated with a dream")
+
 
     def execute_task(self):
         self.deadline = None
@@ -66,7 +77,8 @@ class TodoService:
         UserStreakService(self.user).increase_streak()
 
 class RewardService:
-    def __init__(self, obj: Todo | Habit) -> None:
+    # def __init__(self, obj: Todo | Habit) -> None:
+    def __init__(self, obj: Todo) -> None:
         self.obj = obj
         self.user = obj.user
         self.profile = self.user.profile

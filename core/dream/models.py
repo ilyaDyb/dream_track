@@ -49,24 +49,15 @@ class Dream(models.Model):
                 for image in self.images.all()
             ],
             'likes_count': self.likes.count(),
-            # 'percentage_achieved': self._get_percentage_achieved()
+            'percentage_achieved': self._get_percentage_achieved()
         }
 
 
-    # def _get_percentage_achieved(self):
-    #     sum_transactions = self.user.deposits.aggregate(total=Sum('transactions__amount'))['total'] or 0
-    #     if not self.price:
-    #         return 0
-    #     return int(sum_transactions / self.price * 100)
+    def _get_percentage_achieved(self):
+        total_steps = self.user.todos.filter(is_dream_step=True, dream=self).count()
+        completed_steps = self.user.todos.filter(is_dream_step=True, is_completed=True, dream=self).count()
+        return round((completed_steps / total_steps) * 100, 2) if total_steps > 0 else 0
 
-    # def _get_percentage_achieved(self):
-    #     pass
-
-    def foo(self):
-        '''
-        Здесь в будущем должна быть обработка или вызов обработки выполнения шага к мечте, с дальнейшим выховом метода achieve
-        '''
-        pass
 
     def _achieve(self):
         self.is_active = False

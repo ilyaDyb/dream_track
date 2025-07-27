@@ -2,8 +2,10 @@ from django.db import transaction
 
 from rest_framework import serializers, status
 
+from core.dream import integrations
 from core.dream.models import Dream, DreamImage
 from core.dream.validators import BaseImageValidator
+from core.todo.models import Todo
 
 class DreamService:
 
@@ -104,3 +106,32 @@ class DreamService:
         first_image = images.first()
         first_image.is_preview = True
         first_image.save()
+
+class DreamStepService:
+    def __init__(self, dream: Dream) -> None:
+        self.dream = dream
+
+    def generate_steps(self):
+        return integrations.AIIntegration.generate_dream_steps(self.dream.title)
+
+    def dumb_create_steps(self, steps) -> bool:
+        with transaction.atomic():
+            for step_data in steps:
+                Todo.objects.create(
+                    user=self.dream.user,
+                    title=step_data.get('title', ''),
+                    description=step_data.get('description', ''),
+                    difficulty=step_data.get('difficulty', 1),
+                    is_dream_step=True,
+                    dream=self.dream
+                )
+            return True
+
+    @staticmethod
+    def execute_dream_step(todo: Todo):
+        todo.execute_task()
+        percentage_achieved = todo._get_percentage_achieved()
+        if percentage_achieved == 100:
+            todo.dream.is_completed = True
+            todo.dream.save()
+        return percentage_achieved

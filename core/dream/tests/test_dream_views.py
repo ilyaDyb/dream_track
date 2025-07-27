@@ -1,17 +1,22 @@
 from rest_framework import status, serializers
 from rest_framework.test import APIClient
-from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
-from decimal import Decimal
-import tempfile
-from PIL import Image
-import io
 
-from core.dream.models import Dream, DreamImage
-from core.dream.services import DreamService
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+import tempfile
+import io
+from decimal import Decimal
+from PIL import Image
+from unittest.mock import patch
+
+from core.dream.models import Dream, DreamImage
+from core.dream.services import DreamService
+from core.todo.models import Todo
+
 
 User = get_user_model()
 
@@ -374,3 +379,124 @@ class DreamServiceTest(TestCase):
         self.assertEqual(dream.images.filter(is_preview=True).count(), 1)
         self.assertEqual(dream.images.filter(is_preview=True).first(), dream.images.first())
 
+
+class TestDreamStepGenerateView(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)
+        self.dream = Dream.objects.create(
+            user=self.user,
+            title='Test Dream',
+            description='Test Description',
+            price=Decimal('100.00')
+        )
+        self.url = reverse('dream:dream_step_generate', kwargs={'dream_id': self.dream.id})
+    
+
+    @patch('core.dream.services.integrations.AIIntegration.generate_dream_steps')
+    def test_generate_steps_success(self, mock_generate_steps):
+        mock_generate_steps.return_value = [
+            {'title': 'Step 1', 'description': 'Description 1', 'difficulty': 1},
+            {'title': 'Step 2', 'description': 'Description 2', 'difficulty': 2}
+        ]
+        
+        response = self.client.post(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('steps', response.data)
+        self.assertEqual(len(response.data['steps']), 2)
+        mock_generate_steps.assert_called_once_with(self.dream.title)
+
+    def test_generate_steps_dream_not_found(self):
+        url = reverse('dream:dream_step_generate', kwargs={'dream_id': 999})
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class TestDreamStepDumbCreateView(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)
+        self.dream = Dream.objects.create(
+            user=self.user,
+            title='Test Dream',
+            description='Test Description',
+            price=Decimal('100.00')
+        )
+        self.url = reverse('dream:dream_step_dumb_create', kwargs={'dream_id': self.dream.id})
+        self.valid_steps = [
+            {'title': 'Step 1', 'description': 'Description 1', 'difficulty': 1},
+            {'title': 'Step 2', 'description': 'Description 2', 'difficulty': 2}
+        ]
+
+    def test_create_steps_success(self):
+        response = self.client.post(self.url, {'steps': self.valid_steps}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Todo.objects.filter(dream=self.dream, is_dream_step=True).count(), 2)
+
+    def test_create_steps_empty_list(self):
+        response = self.client.post(self.url, {'steps': []}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+
+    def test_create_steps_invalid_format(self):
+        response = self.client.post(self.url, {'steps': 'not a list'}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+
+    def test_create_steps_missing_required_fields(self):
+        invalid_steps = [{'description': 'Missing title'}]
+        response = self.client.post(self.url, {'steps': invalid_steps}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+
+    def test_create_steps_dream_not_found(self):
+        url = reverse('dream:dream_step_dumb_create', kwargs={'dream_id': 999})
+        response = self.client.post(url, {'steps': self.valid_steps}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class TestDreamStepExecuteView(TestCase):
+   
+    def setUp(self):
+        
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)
+        self.dream = Dream.objects.create(
+            user=self.user,
+            title='Test Dream',
+            description='Test Description',
+            price=Decimal('100.00')
+        )
+        self.todo = Todo.objects.create(
+            user=self.user,
+            title='Test Step',
+            description='Test Description',
+            difficulty=1,
+            is_dream_step=True,
+            dream=self.dream
+        )
+        self.url = reverse('dream:dream_step_execute', kwargs={'dream_id': self.dream.id, 'id': self.todo.id})
+
+    @patch('core.dream.views.DreamStepService.execute_dream_step')
+    def test_execute_step_success(self, mock_execute_step):
+        response = self.client.post(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('message', response.data)
+        mock_execute_step.assert_called_once_with(self.todo)
+
+    def test_execute_step_not_found(self):
+        url = reverse('dream:dream_step_execute', kwargs={'dream_id': self.dream.id, 'id': 999})
+        
+        with self.assertRaises(Todo.DoesNotExist):
+            self.client.post(url)

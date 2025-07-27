@@ -8,3 +8,4 @@ PyJWT==2.8.0
 Pillow==11.2.1
 drf_yasg==1.21.10
 requests==2.32.4
+python-dotenv==1.1.1

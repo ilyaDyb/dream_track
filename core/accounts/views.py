@@ -1,4 +1,7 @@
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 
 from drf_yasg.utils import APIView, swagger_auto_schema
 from drf_yasg import openapi
@@ -85,6 +88,8 @@ class AchievementListView(generics.ListAPIView):
         openapi.Parameter('all', openapi.IN_QUERY, description='Show all achievements', type=openapi.TYPE_BOOLEAN),
         openapi.Parameter('claimed', openapi.IN_QUERY, description='Filter by claimed status', type=openapi.TYPE_BOOLEAN),
     ])
+    @method_decorator(vary_on_headers('Authorization'))
+    @method_decorator(cache_page(60*15))
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
@@ -94,14 +99,12 @@ class AchievementListView(generics.ListAPIView):
             
         all_achievements = self.request.query_params.get('all', 'false').lower() == 'true'
         claimed = self.request.query_params.get('claimed', 'false').lower() == 'true'
-        
-        user_achievements = UserAchievement.objects.filter(user=self.request.user)
-        
+    
         if all_achievements:
             return Achievement.objects.all()
         
         return Achievement.objects.filter(
-            userachievement__in=user_achievements,
+            userachievement__user=self.request.user,
             userachievement__is_claimed=claimed
         )
 

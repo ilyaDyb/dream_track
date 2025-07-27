@@ -56,6 +56,13 @@ DreamTrack is a gamified task and goal tracker combining productivity tools with
 - Triggered inside business logic: purchases, completions, etc.
 - Easily extensible with new stat types and triggers.
 
+### ⚡ Performance & Stability & Integrations
+- Implemented caching for API responses.
+- Implemented pagination for API responses.
+- Implemented rate limiting for API responses.
+- Added caching for achievements, significantly reducing database queries and improving API response times.
+- Integrated with OpenRouter AI for generating dream steps using artificial intelligence.
+
 ### 📄 Swagger API Docs
 
 - Full API schema using drf-yasg.

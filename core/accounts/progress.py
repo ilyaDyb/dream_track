@@ -1,5 +1,4 @@
 
-from core.accounts.services import AchievementService
 from core.accounts.models import User
 
 class UserActionProgressService:
@@ -10,9 +9,11 @@ class UserActionProgressService:
 
     
     def _check_achievements(self, trigger, payload):
+        from core.accounts.services import AchievementService
         AchievementService(self.user).check_achievements(trigger, payload)
     
     def update_stat(self, key, value=1, payload=None):
+        from core.accounts.services import AchievementService
         stat = self.user.statistic
         new_value = getattr(stat, key) + value
         setattr(stat, key, new_value)
