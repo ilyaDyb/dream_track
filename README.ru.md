@@ -77,6 +77,14 @@
 - Django / Django REST Framework
 - PostgreSQL
 - Swagger / drf-yasg
+- OpenRouter AI
+- JWT
+- Pillow for image processing
+- Python-dotenv for environment variables
+- Django REST Framework SimpleJWT for authentication
+- Redis for caching
+- Docker and Docker Compose for containerization
+- Pytest for testing
 
 ---
 
