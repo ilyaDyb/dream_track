@@ -1,6 +1,6 @@
 
 from django.urls import path
-from .views import UserProfileView, ApplyInventoryItemView, UserInventoryView, AchievementListView, AchievementClaimView
+from .views import UserProfileView, ApplyInventoryItemView, UserInventoryView, AchievementListView, AchievementClaimView, TradeListCreateView, TradeAcceptView, TradeRejectView
 
 app_name = 'accounts'
 
@@ -18,4 +18,8 @@ urlpatterns = [
     path('achievements/', AchievementListView.as_view(), name='achievements'),
     path('achievements/<int:achievement_id>/claim/', AchievementClaimView.as_view(), name='achievement_claim'),
 
+    # trades
+    path('trades/', TradeListCreateView.as_view(), name='trade_list_create'),
+    path('trades/<int:trade_id>/accept/', TradeAcceptView.as_view(), name='trade_accept'),
+    path('trades/<int:trade_id>/reject/', TradeRejectView.as_view(), name='trade_reject'),
 ]

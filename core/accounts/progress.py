@@ -33,3 +33,4 @@ class UserActionProgressService:
         # 'item_bought',
         # 'item_equipped',
         # 'total_purchases'
+        # 'habit_completed'

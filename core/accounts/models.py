@@ -2,6 +2,11 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+
+from core.accounts.validators import validate_trade_offer
 
 
 User = get_user_model()
@@ -111,3 +116,127 @@ class UserAchievement(models.Model):
 
     class Meta:
         unique_together = ['user', 'achievement']
+
+
+class Trade(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending'
+        ACCEPTED = 'accepted'
+        REJECTED = 'rejected'
+    
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requester_trades')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipient_trades')
+    requester_offer = models.JSONField(default=dict, validators=[validate_trade_offer], help_text='Trade offer | Example: {"coins": 100, "items_ids": [1, 2, 3]}')
+    recipient_offer = models.JSONField(default=dict, validators=[validate_trade_offer], help_text='Trade offer | Example: {"coins": 100, "items_ids": [1, 2, 3]}')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def clean(self):
+        if self.requester == self.recipient:
+            raise ValidationError("Requester and recipient cannot be the same")
+        
+        if not any([
+            self.requester_offer.get('coins'),
+            self.requester_offer.get('items_ids')
+        ]):
+            raise ValidationError("Requester trade offer must contain coins or items")
+            
+        if not any([
+            self.recipient_offer.get('coins'),
+            self.recipient_offer.get('items_ids')
+        ]):
+            raise ValidationError("Recipient trade offer must contain  coins or items")
+
+        if 'items_ids' in self.requester_offer or 'items_ids' in self.recipient_offer:
+            self._check_items_ids()
+    
+    def _check_items_ids(self):
+        requester_items_ids = self.requester_offer.get('items_ids', [])
+        recipient_items_ids = self.recipient_offer.get('items_ids', [])
+
+        if set(requester_items_ids) & set(recipient_items_ids):
+            raise ValidationError("Same item(s) cannot be traded by both sides")
+
+        if requester_items_ids:
+            requester_items = UserInventory.objects.filter(
+                user=self.requester, 
+                id__in=requester_items_ids
+            )
+            print(requester_items, requester_items_ids)
+            if len(requester_items) != len(requester_items_ids):
+                raise ValidationError("Requester doesn't own all the items in the trade offer")
+        
+        if recipient_items_ids:
+            recipient_items = UserInventory.objects.filter(
+                user=self.recipient, 
+                id__in=recipient_items_ids
+            )
+            if len(recipient_items) != len(recipient_items_ids):
+                raise ValidationError("Recipient doesn't own all the items in the trade offer")
+    
+    def accept_trade(self, user):
+        if user != self.requester and user != self.recipient:
+            raise ValidationError("User is not involved in this trade")
+        
+        if user != self.recipient:
+            raise ValidationError("User is not the recipient of this trade")
+
+        if self.status != self.Status.PENDING:
+            raise ValidationError("Trade is not in pending state")
+
+        with transaction.atomic():      
+            if 'coins' in self.requester_offer:
+                if self.requester.profile.balance < self.requester_offer['coins']:
+                    raise ValidationError("Requester doesn't have enough coins")
+                self.requester.profile.balance -= self.requester_offer['coins']
+                self.recipient.profile.balance += self.requester_offer['coins']
+            
+            if 'coins' in self.recipient_offer:
+                if self.recipient.profile.balance < self.recipient_offer['coins']:
+                    raise ValidationError("Recipient doesn't have enough coins")
+                self.recipient.profile.balance -= self.recipient_offer['coins']
+                self.requester.profile.balance += self.recipient_offer['coins']
+
+            if 'items_ids' in self.requester_offer:
+                items_to_recipient = []
+                for item_id in self.requester_offer['items_ids']:
+                    item = UserInventory.objects.get(id=item_id, user=self.requester)
+                    items_to_recipient.append(item)
+                    item.delete()
+                
+                for item in items_to_recipient:
+                    item.user = self.recipient
+                    item.save()
+
+            if 'items_ids' in self.recipient_offer:
+                items_to_requester = []
+                for item_id in self.recipient_offer['items_ids']:
+                    item = UserInventory.objects.get(id=item_id, user=self.recipient)
+                    items_to_requester.append(item)
+                    item.delete()
+                
+                for item in items_to_requester:
+                    item.user = self.requester
+                    item.save()
+
+            self.requester.profile.save()
+            self.recipient.profile.save()
+            
+            # Update trade status
+            self.status = self.Status.ACCEPTED
+            self.save()
+    
+    def reject_trade(self):
+        if self.status != self.Status.PENDING:
+            raise ValidationError("Trade is not in pending state")
+        self.status = self.Status.REJECTED
+        self.save()
+    
+    def __str__(self):
+        return f"Trade {self.id}: {self.requester.username} <-> {self.recipient.username} ({self.status})"
+    
+    class Meta:
+        verbose_name = 'Обмен'
+        verbose_name_plural = 'Обмены'
+        ordering = ['-created_at']

@@ -1,12 +1,11 @@
 from django.db import models
 
-from core.accounts.services import AchievementService
-
 
 class Statistic(models.Model):
     user = models.OneToOneField('authentication.User', on_delete=models.CASCADE, related_name='statistic')
 
     tasks_completed = models.IntegerField(default=0)
+    habits_completed = models.IntegerField(default=0)
     
     items_bought = models.IntegerField(default=0)
     items_equipped = models.IntegerField(default=0)

@@ -56,6 +56,22 @@ DreamTrack is a gamified task and goal tracker combining productivity tools with
 - Triggered inside business logic: purchases, completions, etc.
 - Easily extensible with new stat types and triggers.
 
+### 🔄 Trade System
+- Allows users to exchange items and coins with each other.
+- Trade offers include both items and in-game currency.
+- Three-stage process: request, review, and accept/reject.
+- Trade validation ensures users own offered items.
+- Transaction safety with database-level consistency.
+- Real-time status updates for both trade participants.
+- Trade history for tracking past exchanges.
+- Protection against fraudulent trades through validation checks.
+
+### 🌱 Habit System
+- Create recurring habits.
+- Track habit completion streaks and consistency metrics.
+- Earn rewards for maintaining consistent habit completion.
+
+
 ### ⚡ Performance & Stability & Integrations
 - Implemented caching for API responses.
 - Implemented pagination for API responses.

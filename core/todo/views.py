@@ -8,8 +8,8 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from core.todo.models import Todo
-from core.todo.serializers import TodoSerializer
+from core.todo.models import Todo, Habit
+from core.todo.serializers import HabitSerializer, TodoSerializer
 from core.docs.templates import AUTH_HEADER
 
 
@@ -121,3 +121,56 @@ class TodoExecuteView(APIView):
             return Response({"error": "Task is already completed"}, status=status.HTTP_400_BAD_REQUEST)
         xp, coins = todo.execute_task()
         return Response({"xp": xp, "coins": coins}, status=status.HTTP_200_OK)
+
+class HabitExecuteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, pk):
+        habit = generics.get_object_or_404(Habit, pk=pk, user=request.user)
+        xp, coins = habit.execute_habit()
+        return Response({'xp': xp, 'coins': coins}, status=status.HTTP_200_OK)
+
+
+class HabitListCreateView(generics.ListCreateAPIView):
+    serializer_class = HabitSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Habit.objects.none()
+        return Habit.objects.filter(user=self.request.user)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+    
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+
+class HabitRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = HabitSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Habit.objects.none()
+        return Habit.objects.filter(user=self.request.user)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)

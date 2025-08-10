@@ -76,9 +76,40 @@ class TodoService:
     def _increase_streak(self) -> None:
         UserStreakService(self.user).increase_streak()
 
+class Habit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
+    title = models.CharField(max_length=255)
+    description = models.CharField(max_length=2048, blank=True, null=True)
+    difficulty = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(3)])
+
+    streak = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+    def execute_habit(self):
+        xp, coins = RewardService(self).calculate_rewards()
+        self.user.profile.xp += xp
+        self.user.profile.balance += coins
+        with transaction.atomic():
+            self.user.profile.save()
+            self.save()
+            self._increase_streak()
+        
+        return xp, coins
+
+    def _increase_streak(self) -> None:
+        self.streak += 1
+        self.save()
+        UserActionProgressService(self.user).update_stat('habits_completed')
+
+
+    class Meta:
+        verbose_name = 'Привычка'
+        verbose_name_plural = 'Привычки'
+
 class RewardService:
-    # def __init__(self, obj: Todo | Habit) -> None:
-    def __init__(self, obj: Todo) -> None:
+    def __init__(self, obj: Todo | Habit) -> None:
         self.obj = obj
         self.user = obj.user
         self.profile = self.user.profile
@@ -93,26 +124,3 @@ class RewardService:
     def get_multiplier(self, boost_type: str) -> float:
         boosts = {b.boost.boost_type: b.boost.multiplier for b in self.user.boosts.all() if b.expires_at > timezone.now()}
         return boosts.get(boost_type, 1.0)
-
-# class Habit(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')
-#     title = models.CharField(max_length=255)
-#     description = models.CharField(max_length=2048, blank=True, null=True)
-#     difficulty = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(3)])
-
-#     streak = models.PositiveIntegerField(default=0)
-
-#     def __str__(self):
-#         return self.title
-
-#     def execute_habit(self):
-#         self.streak += 1
-#         xp, coins = RewardService(self).calculate_rewards()
-#         self.user.profile.xp += xp
-#         self.user.profile.balance += coins
-#         with transaction.atomic():
-#             self.user.profile.save()
-#             self.save()
-    # class Meta:
-    #     verbose_name = 'Привычка'
-    #     verbose_name_plural = 'Привычки'

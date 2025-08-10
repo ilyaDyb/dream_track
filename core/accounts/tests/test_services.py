@@ -3,13 +3,15 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from datetime import timedelta
 
 from core.accounts.models import UserStreak, Achievement, UserAchievement, UserInventory
 from core.accounts.services import UserStreakService, AchievementService, UserAchievementService
-from core.shop.models import BackgroundItem
-
+from core.shop.models import BackgroundItem, AvatarItem
+from core.accounts.models import Trade
+from core.accounts.models import UserInventory
 
 class UserStreakServiceTests(TestCase):
     def setUp(self):
@@ -163,3 +165,83 @@ class AchievementIntegrationTests(TestCase):
         service.check_achievements('test_trigger', {'tasks_completed': 2})
 
         self.assertFalse(UserAchievement.objects.filter(user=self.user, achievement=self.achievement).exists())
+
+
+class TradeModelTestCase(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(username='user1', password='pass')
+        self.user2 = User.objects.create_user(username='user2', password='pass')
+        self.user1.profile.balance = 500
+        self.user1.profile.save()
+        self.user2.profile.balance = 300
+        self.user2.profile.save()
+
+        self.item_base1 = BackgroundItem.objects.create(name='BG1', price=0, rarity='common', image='bg1.png')
+        self.item_base2 = AvatarItem.objects.create(name='AV1', price=0, rarity='common', image='av1.png')
+
+        self.item1 = UserInventory.objects.create(user=self.user1, item=self.item_base1)
+        self.item2 = UserInventory.objects.create(user=self.user2, item=self.item_base2)
+
+    def test_valid_trade_creation(self):
+        trade = Trade.objects.create(
+            requester=self.user1,
+            recipient=self.user2,
+            requester_offer={"coins": 100, "items_ids": [self.item1.id]},
+            recipient_offer={"coins": 100, "items_ids": [self.item2.id]},
+        )
+        trade.full_clean()  # should not raise
+
+    def test_trade_with_same_users_invalid(self):
+        trade = Trade(
+            requester=self.user1,
+            recipient=self.user1,
+            requester_offer={"coins": 50},
+            recipient_offer={"coins": 50},
+        )
+        with self.assertRaises(ValidationError):
+            trade.full_clean()
+
+    def test_trade_with_invalid_items(self):
+        trade = Trade(
+            requester=self.user1,
+            recipient=self.user2,
+            requester_offer={"items_ids": [999]},
+            recipient_offer={"coins": 50}
+        )
+        with self.assertRaises(ValidationError):
+            trade.full_clean()
+
+    def test_accept_trade_successfully(self):
+        trade = Trade.objects.create(
+            requester=self.user1,
+            recipient=self.user2,
+            requester_offer={"coins": 100, "items_ids": [self.item1.id]},
+            recipient_offer={"coins": 50, "items_ids": [self.item2.id]},
+        )
+        trade.full_clean()
+        trade.accept_trade(user=self.user2)
+        trade.refresh_from_db()
+
+        self.assertEqual(trade.status, Trade.Status.ACCEPTED)
+        self.assertEqual(UserInventory.objects.get(id=self.item1.id).user, self.user2)
+        self.assertEqual(UserInventory.objects.get(id=self.item2.id).user, self.user1)
+
+    def test_accept_trade_invalid_user(self):
+        trade = Trade.objects.create(
+            requester=self.user1,
+            recipient=self.user2,
+            requester_offer={"coins": 50},
+            recipient_offer={"coins": 50},
+        )
+        with self.assertRaises(ValidationError):
+            trade.accept_trade(user=self.user1)  # requester cannot accept
+
+    def test_reject_trade(self):
+        trade = Trade.objects.create(
+            requester=self.user1,
+            recipient=self.user2,
+            requester_offer={"coins": 10},
+            recipient_offer={"coins": 10},
+        )
+        trade.reject_trade()
+        self.assertEqual(trade.status, Trade.Status.REJECTED)

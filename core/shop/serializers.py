@@ -16,3 +16,8 @@ class BaseShopItemSerializer(serializers.ModelSerializer):
     def get_is_bought(self, obj):
         return UserInventory.objects.filter(user=self.context['request'].user, item=obj).exists()
         
+class ShopItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseShopItem
+        fields = ['id', 'name', 'description', 'image', 'price', 'type']
+        

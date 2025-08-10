@@ -72,7 +72,8 @@ class AchievementService:
         'dream_completed',
         'item_bought',
         'item_equipped',
-        'total_purchases'
+        'total_purchases',
+        'habits_completed',
     ]
 
     def __init__(self, user):

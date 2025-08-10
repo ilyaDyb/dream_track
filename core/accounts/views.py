@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from django.utils.translation.trans_real import all_locale_paths
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
+from django.db.models import Q
 
 from drf_yasg.utils import APIView, swagger_auto_schema
 from drf_yasg import openapi
@@ -9,8 +11,8 @@ from drf_yasg import openapi
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
-from core.accounts.models import Achievement, UserProfile, UserInventory, UserAchievement
-from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer, AchievementSerializer
+from core.accounts.models import Achievement, UserProfile, UserInventory, Trade
+from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer, AchievementSerializer, TradeSerializer, CUDTradeSerializer
 from core.accounts.services import UserAchievementService
 from core.docs.templates import AUTH_HEADER
 from core.utils.paginator import CustomPageNumberPagination
@@ -118,3 +120,71 @@ class AchievementClaimView(APIView):
         achievement = get_object_or_404(Achievement, id=achievement_id)
         UserAchievementService(request.user).activate_achievement(achievement_id)
         return Response({'message': f"Достижение {achievement.title} успешно активировано"}, status=status.HTTP_200_OK)
+
+
+class TradeListCreateView(generics.ListCreateAPIView):
+    serializer_class = TradeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+    queryset = Trade.objects.all()
+
+    # @method_decorator(vary_on_headers('Authorization'))
+    # @method_decorator(cache_page(60*15))
+    @swagger_auto_schema(
+        manual_parameters=[
+            AUTH_HEADER,
+            openapi.Parameter('all', openapi.IN_QUERY, description='Show all trades', type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('rejected', openapi.IN_QUERY, description='Filter by rejected status', type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('accepted', openapi.IN_QUERY, description='Filter by accepted status', type=openapi.TYPE_BOOLEAN),
+        ],
+        responses={200: TradeSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = TradeSerializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def post(self, request, *args, **kwargs):
+        serializer = CUDTradeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        trade = serializer.save(user=request.user)
+        return Response({'trade': TradeSerializer(trade).data}, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        rejected = self.request.query_params.get('rejected', 'false').lower() == 'true'
+        accepted = self.request.query_params.get('accepted', 'false').lower() == 'true'
+        all = self.request.query_params.get('all', 'false').lower() == 'true'
+        base_query = Trade.objects.filter(
+            Q(requester_id=self.request.user.id) | Q(recipient_id=self.request.user.id)
+        ).order_by('-created_at')
+        
+        if all:
+            return base_query
+        if rejected:
+            return base_query.filter(status=Trade.Status.REJECTED)
+        if accepted:
+            return base_query.filter(status=Trade.Status.ACCEPTED)
+        return base_query
+
+
+class TradeAcceptView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        trade_id = kwargs.get('trade_id')
+        trade = get_object_or_404(Trade, id=trade_id)
+        trade.accept_trade(request.user)
+        return Response({'message': f"Сделка {trade.id} успешно принята"}, status=status.HTTP_200_OK)
+
+
+class TradeRejectView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        trade_id = kwargs.get('trade_id')
+        trade = get_object_or_404(Trade, id=trade_id)
+        trade.reject_trade(request.user)
+        return Response({'message': f"Сделка {trade.id} успешно отклонена"}, status=status.HTTP_200_OK)
+    

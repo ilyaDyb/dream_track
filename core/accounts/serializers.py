@@ -1,9 +1,13 @@
 from rest_framework import serializers
 
+from django.contrib.auth import get_user_model
+
 from core.accounts.services import UserStreakService
 from core.shop.models import BaseShopItem, BoostItem, AvatarItem, BackgroundItem, IconItem
-from core.accounts.models import Achievement, UserProfile, UserInventory
+from core.accounts.models import Achievement, Trade, UserProfile, UserInventory
+from core.shop.serializers import ShopItemSerializer
 
+User = get_user_model()
 
 # Profile
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -78,3 +82,79 @@ class AchievementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Achievement
         exclude = ['code', 'trigger', 'condition_data']
+
+
+# Trades
+
+class CUDTradeSerializer(serializers.ModelSerializer):
+    requester = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    recipient = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Trade
+        fields = [
+            'id', 'requester', 'recipient',
+            'requester_offer', 'recipient_offer',
+            'status', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'status']
+
+    def create(self, validated_data):
+        user = validated_data.pop("user", None)
+        if user and "requester" not in validated_data:
+            validated_data["requester"] = user
+            
+        requester_offer = validated_data.get("requester_offer", {})
+        recipient_offer = validated_data.get("recipient_offer", {})
+
+        def attach_items_data(user, offer):
+            items_ids = offer.get("items_ids", [])
+            inventories = UserInventory.objects.filter(user=user, id__in=items_ids)
+            items = [inv.item.get_instance_by_type() for inv in inventories]
+            offer["items_data"] = ShopItemSerializer(items, many=True).data
+            return offer
+
+        validated_data["requester_offer"] = attach_items_data(validated_data["requester"], requester_offer)
+        validated_data["recipient_offer"] = attach_items_data(validated_data["recipient"], recipient_offer)
+
+        return super().create(validated_data)
+
+
+
+class TradeSerializer(serializers.ModelSerializer):
+    requester = serializers.SerializerMethodField()
+    recipient = serializers.SerializerMethodField()
+    requester_offer = serializers.SerializerMethodField()
+    recipient_offer = serializers.SerializerMethodField()
+    class Meta:
+        model = Trade
+        fields = ['id', 'requester', 'recipient', 'requester_offer', 'recipient_offer', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'status']
+
+    def get_requester(self, obj):
+        return dict(username=obj.requester.username, id=obj.requester.id, avatar=obj.requester.profile.avatar)
+
+    def get_recipient(self, obj):
+        return dict(username=obj.recipient.username, id=obj.recipient.id, avatar=obj.recipient.profile.avatar)
+
+    def get_requester_offer(self, obj):
+        offer = obj.requester_offer
+        if 'items_data' in offer:
+            return offer
+
+        items_ids = offer.get('items_ids', [])
+        inventories = UserInventory.objects.filter(id__in=items_ids)
+        items = [inv.item.get_instance_by_type() for inv in inventories]
+        offer["items"] = ShopItemSerializer(items, many=True).data
+        return offer
+
+    def get_recipient_offer(self, obj):
+        offer = obj.recipient_offer
+        if 'items_data' in offer:
+            return offer
+
+        items_ids = offer.get('items_ids', [])
+        inventories = UserInventory.objects.filter(id__in=items_ids)
+        items = [inv.item.get_instance_by_type() for inv in inventories]
+        offer["items"] = ShopItemSerializer(items, many=True).data
+        return offer
