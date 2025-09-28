@@ -1,6 +1,8 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.urls import reverse
+
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -8,15 +10,22 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the user object"""
-    avatar_url = serializers.SerializerMethodField()
-    
+    avatar = serializers.SerializerMethodField()
+    profile_url = serializers.SerializerMethodField()
+
+    def get_profile_url(self, obj):
+        if obj.profile:
+            return reverse('accounts:profile_other', kwargs={'pk': obj.id})
+        return ''
+
+
     class Meta:
         model = User
-        fields = ('id', 'username')
+        fields = ('id', 'username', 'avatar', 'profile_url')
         read_only_fields = ('id',)
 
-    def get_avatar_url(self, obj):
-        return obj.avatar_url
+    def get_avatar(self, obj):
+        return obj.profile.avatar
     
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for creating user accounts"""

@@ -5,6 +5,7 @@ from .views import (
     RegisterView,
     CustomTokenObtainPairView,
     LogoutView,
+    UserDetailView
 )
 
 app_name = 'authentication'
@@ -18,7 +19,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     
 
-    # path('user/', UserDetailView.as_view(), name='user_details'),
+    path('user/<int:pk>', UserDetailView.as_view(), name='user_details'),
     # profile/<int:id>
     # profile/<int:id>/avatar
 

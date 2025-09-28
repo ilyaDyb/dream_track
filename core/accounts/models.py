@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.db.models import Q
+from django.urls import reverse
 
 from core.accounts.validators import validate_trade_offer
 
@@ -61,6 +63,9 @@ class UserProfile(models.Model):
 
     def get_active_items(self):
         return self.user.inventory.filter(is_equipped=True)
+
+    def get_absolute_url(self):
+        return reverse('accounts:profile_other', kwargs={'pk': self.user.id})
 
 class UserInventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory')
@@ -240,3 +245,78 @@ class Trade(models.Model):
         verbose_name = 'Обмен'
         verbose_name_plural = 'Обмены'
         ordering = ['-created_at']
+
+class FriendRelation(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending'
+        ACCEPTED = 'accepted'
+        REJECTED = 'rejected'
+    
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_friend_requests')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_friend_requests')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get_user_friends(cls, user: User, status: str):
+        if status not in ['pending', 'accepted', 'rejected']:
+            raise ValueError("Invalid status")
+
+        with transaction.atomic():
+            friends = cls.objects.filter(
+                Q(requester=user) | Q(recipient=user),
+                status=status
+            )
+            return [friend.requester if friend.requester != user else friend.recipient for friend in friends]
+
+    def accept_friend_request(self, user: User):
+        if user != self.requester and user != self.recipient:
+            raise ValidationError("User is not the requester or recipient of the friend request")
+        if user != self.recipient:
+            raise ValidationError("User is not the recipient of the friend request")
+        if self.status != self.Status.PENDING:
+            raise ValidationError("Friend request is not in pending state")
+        self.status = self.Status.ACCEPTED
+        self.save()
+
+    def reject_friend_request(self, user: User):
+        if user != self.requester and user != self.recipient:
+            raise ValidationError("User is not the requester or recipient of the friend request")
+        if self.status != self.Status.PENDING:
+            raise ValidationError("Friend request is not in pending state")
+        if user != self.requester:
+            raise ValidationError("User is not the requester of the friend request")
+        self.status = self.Status.REJECTED
+        self.save()
+
+    @classmethod
+    def get_pending_friend_requests(cls, user: User, as_requester: bool = False):
+        if as_requester:
+            return cls.objects.filter(
+                requester=user,
+                status=cls.Status.PENDING
+            )
+        return cls.objects.filter(
+            recipient=user,
+            status=cls.Status.PENDING
+        )
+
+    @classmethod
+    def make_friend_request(cls, requester: User, recipient: User):
+        if requester == recipient:
+            raise ValidationError("User cannot make a friend request to himself")
+        if cls.objects.filter(
+                Q(requester=requester, recipient=recipient) | Q(requester=recipient, recipient=requester)
+            ):
+            raise ValidationError("Friend request already exists")
+
+        with transaction.atomic():
+            cls.objects.create(
+                requester=requester,
+                recipient=recipient,
+                status=cls.Status.PENDING
+            )
+
+    def __str__(self):
+        return f"Friend request {self.id}: {self.requester.username} <-> {self.recipient.username} ({self.status})"

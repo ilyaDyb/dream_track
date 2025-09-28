@@ -2,6 +2,12 @@ from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+from core.docs.templates import AUTH_HEADER
+
 from django.contrib.auth import get_user_model
 
 from .serializers import (
@@ -53,3 +59,13 @@ class LogoutView(generics.GenericAPIView):
             {'detail': 'Successfully logged out.'},
             status=status.HTTP_204_NO_CONTENT
         )
+
+class UserDetailView(generics.RetrieveAPIView):
+    # queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):    
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)

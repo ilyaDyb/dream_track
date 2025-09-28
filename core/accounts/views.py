@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.utils.translation.trans_real import all_locale_paths
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 from drf_yasg.utils import APIView, swagger_auto_schema
 from drf_yasg import openapi
@@ -11,11 +11,15 @@ from drf_yasg import openapi
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
-from core.accounts.models import Achievement, UserProfile, UserInventory, Trade
+from core.accounts.models import Achievement, UserProfile, UserInventory, Trade, FriendRelation
 from core.accounts.serializers import UserProfileSerializer, UserInventorySerializer, AchievementSerializer, TradeSerializer, CUDTradeSerializer
 from core.accounts.services import UserAchievementService
+from core.authentication.serializers import UserSerializer
 from core.docs.templates import AUTH_HEADER
 from core.utils.paginator import CustomPageNumberPagination
+
+User = get_user_model()
+
 
 class UserProfileView(generics.RetrieveAPIView):
     serializer_class = UserProfileSerializer
@@ -187,4 +191,55 @@ class TradeRejectView(APIView):
         trade = get_object_or_404(Trade, id=trade_id)
         trade.reject_trade(request.user)
         return Response({'message': f"Сделка {trade.id} успешно отклонена"}, status=status.HTTP_200_OK)
-    
+
+class MakeFriendRequest(APIView):
+    """Makes friend request to another user"""
+    permission_classes = [permissions.IsAuthenticated]
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def post(self, request, *args, **kwargs):
+        user_id = kwargs.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+        FriendRelation.make_friend_request(request.user, user)
+        return Response({'message': 'Friend request sent successfully'}, status=status.HTTP_200_OK)
+
+class AcceptFriendRequest(APIView):
+    """Accepts friend request"""
+    permission_classes = [permissions.IsAuthenticated]
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        friend_request_id = kwargs.get('friend_request_id')
+        friend_request = get_object_or_404(FriendRelation, id=friend_request_id)
+        friend_request.accept_friend_request(request.user)
+        return Response({'message': 'Friend request accepted successfully'}, status=status.HTTP_200_OK)
+
+class RejectFriendRequest(APIView):
+    """Rejects friend request"""
+    permission_classes = [permissions.IsAuthenticated]
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def patch(self, request, *args, **kwargs):
+        friend_request_id = kwargs.get('friend_request_id')
+        friend_request = get_object_or_404(FriendRelation, id=friend_request_id)
+        friend_request.reject_friend_request(request.user)
+        return Response({'message': 'Friend request rejected successfully'}, status=status.HTTP_200_OK)
+
+class FriendsList(generics.ListAPIView):
+    """Visible friends list with filtering by status (all, accepted, pending, rejected)"""
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+    http_method_names = ['get']
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        status_ = self.request.query_params.get('status', 'accepted')
+        if status_ not in ['accepted', 'pending']:
+            status_ = 'accepted'
+        
+        friends = FriendRelation.get_user_friends(request.user, status_)
+        serializer = UserSerializer(friends, many=True)
+        return Response({'friends': serializer.data}, status=status.HTTP_200_OK)
+
+
+# class Leaderboard():
+#     """Leaderboard top 100 users by XP, streaks, coins, etc."""
+#     pass
