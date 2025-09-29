@@ -84,6 +84,14 @@ DreamTrack is a gamified task and goal tracker combining productivity tools with
 - Full API schema using drf-yasg.
 - Interactive testing through Swagger UI.
 
+### 🎰 Daily Roulette
+- The user can spin the wheel of fortune once a day. Rewards include coins, experience, and rare, unique items.
+
+### 🤝 Friendship System
+- Ability to send and receive friend requests.
+- View your friends list.
+- Accept or decline incoming requests.
+
 ---
 
 ## 🛠️ Tech Stack

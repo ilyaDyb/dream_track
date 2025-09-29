@@ -348,5 +348,19 @@
             "is_active": true,
             "type": "boost"
         }
+    },
+    {
+        "model": "shop.baseshopitem",
+        "pk": 46,
+        "fields": {
+            "name": "⭐ Wishful Star",
+            "rarity": "legendary",
+            "description": "Звезда, исполненная всеми твоими желаниями. Если ты получишь ее, то твои желания сбудется",
+            "image": "shop_items/wishful_star.png",
+            "price": 99999,
+            "is_donation_only": true,
+            "is_active": true,
+            "type": "icon"
+        }
     }
 ]

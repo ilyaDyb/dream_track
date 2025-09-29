@@ -98,5 +98,10 @@
         "model": "shop.iconitem",
         "pk": 41,
         "fields": {}
+    },
+    {
+        "model": "shop.iconitem",
+        "pk": 46,
+        "fields": {}
     }
 ]

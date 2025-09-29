@@ -17,6 +17,7 @@ from core.accounts.services import UserAchievementService
 from core.authentication.serializers import UserSerializer
 from core.docs.templates import AUTH_HEADER
 from core.utils.paginator import CustomPageNumberPagination
+from core.accounts.roulette import DailyRoulette
 
 User = get_user_model()
 
@@ -239,6 +240,26 @@ class FriendsList(generics.ListAPIView):
         serializer = UserSerializer(friends, many=True)
         return Response({'friends': serializer.data}, status=status.HTTP_200_OK)
 
+class DailyRouletteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def post(self, request, *args, **kwargs):
+        roulette = DailyRoulette()
+        try:
+            reward = roulette.spin(user=request.user)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if not reward:
+            raise ValidationError('Something went wrong')
+        return Response({'message': f'Поздравляем! Вы выиграли {reward["name"]}!'}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(manual_parameters=[AUTH_HEADER])
+    def get(self, request, *args, **kwargs):
+        roulette = DailyRoulette()
+        rewards = roulette.get_rewards_list()
+        _ = [reward.pop('weight') for reward in rewards]
+        return Response({'rewards': rewards}, status=status.HTTP_200_OK)
 
 # class Leaderboard():
 #     """Leaderboard top 100 users by XP, streaks, coins, etc."""

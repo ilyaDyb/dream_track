@@ -2,7 +2,7 @@
 from django.urls import path
 from .views import (UserProfileView, ApplyInventoryItemView, UserInventoryView, AchievementListView,
     AchievementClaimView, TradeListCreateView, TradeAcceptView, TradeRejectView, FriendsList,
-    AcceptFriendRequest, RejectFriendRequest, MakeFriendRequest)
+    AcceptFriendRequest, RejectFriendRequest, MakeFriendRequest, DailyRouletteView)
 
 app_name = 'accounts'
 
@@ -31,4 +31,8 @@ urlpatterns = [
     path('friends/<int:user_id>/add/', MakeFriendRequest.as_view(), name='make_friend_request'),
     path('friends/<int:friend_request_id>/accept/', AcceptFriendRequest.as_view(), name='accept_friend_request'),
     path('friends/<int:friend_request_id>/reject/', RejectFriendRequest.as_view(), name='reject_friend_request'),
+
+    # roulettes
+    path('daily_roulette/', DailyRouletteView.as_view(), name='daily_roulette'),
+    
 ]

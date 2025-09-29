@@ -320,3 +320,7 @@ class FriendRelation(models.Model):
 
     def __str__(self):
         return f"Friend request {self.id}: {self.requester.username} <-> {self.recipient.username} ({self.status})"
+
+class UserDailyRoulette(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='daily_roulette')
+    last_spin = models.DateTimeField(null=True, blank=True)
