@@ -1,6 +1,9 @@
 # DreamTrack
 
-DreamTrack is a gamified task and goal tracker combining productivity tools with an RPG-like experience. Users earn XP and coins for completing tasks, level up, and can spend earned rewards in an in-app shop featuring avatars, backgrounds, and more.
+DreamTrack is a gamified task and goal tracker that turns productivity into a game-like adventure.  
+Users complete tasks, build habits, and track progress while earning XP, coins, and unique rewards.  
+Daily roulettes, achievements, and streaks keep motivation high, while a shop, inventory, and trade system add RPG-like depth. The friendship feature allows users to connect, share progress, and challenge each other, making DreamTrack both fun and social.
+
 
 ## 🚀 Key Features
 
