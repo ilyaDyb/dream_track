@@ -7,7 +7,7 @@ from django.utils import timezone
 from core.accounts.progress import UserActionProgressService
 from core.todo.utils import get_xp_by_lvl, get_coins_by_lvl
 from core.accounts.services import UserStreakService
-
+import random
 User = get_user_model()
 
 class Todo(models.Model):
@@ -23,6 +23,8 @@ class Todo(models.Model):
 
     is_dream_step = models.BooleanField(default=False)
     dream = models.ForeignKey('dream.Dream', on_delete=models.CASCADE, related_name='steps', null=True, blank=True)
+
+    is_golden = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
@@ -49,12 +51,19 @@ class Todo(models.Model):
 
         todo_service = TodoService(self)
 
+        if not self.is_golden:
+            val = random.random()
+            if val < 0.1:
+                self.is_golden = True
+                self.save()
+
         with transaction.atomic():
             xp, coins = todo_service.apply_rewards()
             self.save()
             UserActionProgressService(self.user).update_stat('task_completed')
         
         return xp, coins
+
 
 class TodoService:
     def __init__(self, task: Todo) -> None:
@@ -123,4 +132,8 @@ class RewardService:
     
     def get_multiplier(self, boost_type: str) -> float:
         boosts = {b.boost.boost_type: b.boost.multiplier for b in self.user.boosts.all() if b.expires_at > timezone.now()}
-        return boosts.get(boost_type, 1.0)
+        boost_multiplier = boosts.get(boost_type, 1.0)
+        if self.obj.is_golden:
+            return boost_multiplier * 2
+        return boost_multiplier
+

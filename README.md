@@ -12,6 +12,7 @@ Daily roulettes, achievements, and streaks keep motivation high, while a shop, i
 - Create tasks with deadlines and difficulty levels.
 - Completing tasks grants XP and coins.
 - Designed to reinforce habit-building through rewards.
+- 10% chance for a gold task (rewards are doubled).
 
 ### 📈 Level System
 

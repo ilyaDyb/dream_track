@@ -45,6 +45,7 @@ class UserStreakService:
 
     def reset_streak(self) -> None:
         self.streak.current_streak = 0
+        self.streak.save(update_fields=['current_streak'])
 
     def update_streak(self) -> None:
         self.streak.current_streak += 1
